@@ -23,6 +23,10 @@ app.add_middleware(
 app.include_router(stock.router)
 app.include_router(market.router)
 
+@app.get("/")
+async def root():
+    return {"status": "ok", "message": "Trade Only API is running"}
+
 @app.get("/api/health")
 async def health_check():
     return {"status": "ok", "message": "Service is healthy"}
