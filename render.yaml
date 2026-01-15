@@ -1,0 +1,31 @@
+services:
+  # Backend Service
+  - type: web
+    name: trade-only-api
+    env: python
+    buildCommand: pip install -r api/requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
+  # Frontend Service
+  - type: static
+    name: trade-only-frontend
+    env: node
+    buildCommand: npm install && npm run build
+    publishDir: dist
+    envVars:
+      - key: VITE_API_URL
+        fromService:
+          type: web
+          name: trade-only-api
+          property: url
+      - key: VITE_SUPABASE_URL
+        sync: false
+      - key: VITE_SUPABASE_ANON_KEY
+        sync: false
