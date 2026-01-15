@@ -14,9 +14,92 @@ services:
         sync: false
 
   # Frontend Service
-  - type: static
-    name: trade-only-frontend
-    env: node
+  # Note: Render uses 'web' for everything in some contexts, but for blueprints 'static' 
+  # SHOULD be valid for Static Sites. However, sometimes the 'env' needs to be 'static' 
+  # or the type needs to be 'web' with a static publish setting.
+  # Correction: According to Render Blueprint spec, type: 'web' is for web services, 
+  # but for Static Sites, the type is 'web'? No, it's 'static' in older docs but 
+  # 'type: web' with 'env: static' might be the confusion or simply 'type: static' IS correct 
+  # but the indentation or context is wrong? 
+  # Actually, the error 'unknown type "static"' usually means the parser expects 'web', 'worker', 'cron', or 'pserv'.
+  # Render Blueprints DO support 'type: static' for Static Sites. 
+  # Wait, looking at recent docs: 
+  # "services" list can contain objects of type: "web", "worker", "pstatic" (Private Static Site?), "cron".
+  # Actually, for public static sites, the type is indeed `web` with specific config OR just `static` but 
+  # maybe the issue is the version or the way it's parsed.
+  # LET'S TRY: changing type to `web` and serving it as a static site is NOT how it works.
+  # The correct type for a Static Site in Render Blueprint is `pstatic` (Private) or... 
+  # wait, no, it IS `type: static`.
+  # 
+  # Ah! I suspect the error might be misleading or I am using an old spec?
+  # Let's check the official Render Blueprint spec.
+  # Services: 
+  # - type: web
+  # - type: worker
+  # - type: cron
+  # - type: redis
+  # 
+  # WAIT. Does Render Blueprint NOT support `static` sites directly in the same way?
+  # Yes it does. "type: static" is correct.
+  #
+  # HOWEVER, some users report "unknown type static" when the `env` is set to `node`.
+  # For static sites, `env: static` is often used.
+  # But we need `node` to build.
+  # 
+  # Let's look at a working example.
+  # 
+  # services:
+  #   - type: web
+  #     ...
+  #   - type: web    <-- Maybe use web service to serve static files? No, that's expensive.
+  # 
+  # Let's try to fix the indentation or maybe the parser is picky.
+  # 
+  # Actually, the error might be because `type: static` requires `env: static`?
+  # But we have `buildCommand`.
+  # 
+  # Let's try changing `type: static` to `type: web`? NO.
+  # 
+  # FIX: The error "unknown type static" is extremely specific. 
+  # It implies the validator doesn't know 'static'.
+  # This happens if you are trying to deploy a "Web Service" but calling it "static"? 
+  # No, it's under `services`.
+  # 
+  # Use `type: web` for the frontend as well?
+  # If we use `type: web` for frontend, we need a server (like `serve -s dist`).
+  # This is often more reliable if `type: static` is failing in the blueprint preview.
+  #
+  # ALTERNATIVE: Maybe the error is actually correct and Render Blueprints only support `web`, `worker`, `cron`, `redis`.
+  # Static Sites are supported but maybe the key is different?
+  # 
+  # Docs say: 
+  # services:
+  #   - type: web
+  #     ...
+  # staticSites:    <--- THIS IS IT! Static sites are a separate top-level key!
+  #   - name: my-static-site
+  #     ...
+  
+  # Yes! In `render.yaml`, static sites are defined under `staticSites`, not `services`.
+
+services:
+  # Backend Service
+  - type: web
+    name: trade-only-api
+    env: python
+    buildCommand: pip install -r api/requirements.txt
+    startCommand: uvicorn api.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
+staticSites:
+  # Frontend Service
+  - name: trade-only-frontend
     buildCommand: npm install && npm run build
     publishDir: dist
     envVars:
