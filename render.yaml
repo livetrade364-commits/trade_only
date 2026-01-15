@@ -13,34 +13,11 @@ services:
       - key: SUPABASE_KEY
         sync: false
 
+staticSites:
   # Frontend Service
-  # Render Blueprints define static sites as a "web" service with "runtime: static"
-  # instead of a separate top-level key in some older/newer spec versions, 
-  # BUT the official documentation (which I just read) shows:
-  # services:
-  #   - type: web
-  #     runtime: static
-  #
-  # This is the key difference! It's NOT `type: static`. It's `type: web` with `runtime: static`.
-  # AND it's under `services`, not `staticSites`? 
-  # 
-  # Let's re-read the doc snippet carefully:
-  # "The following render.yaml file demonstrates usage...
-  # services:
-  #   - type: web
-  #     name: my-blog
-  #     runtime: static
-  # "
-  #
-  # AHA! So the type IS "web" and the RUNTIME is "static".
-  # And it goes under `services`.
-  # The `staticSites` key I used before might be deprecated or incorrect for the current Blueprint spec.
-
-  - type: web
-    name: trade-only-frontend
-    runtime: static
+  - name: trade-only-frontend
     buildCommand: npm install && npm run build
-    staticPublishPath: dist
+    publishDir: dist
     envVars:
       - key: VITE_API_URL
         fromService:

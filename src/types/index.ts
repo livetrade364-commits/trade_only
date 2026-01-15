@@ -1,5 +1,6 @@
 export interface StockQuote {
   symbol: string;
+  name?: string;
   price: number;
   change: number;
   changePercent: number;
@@ -7,6 +8,8 @@ export interface StockQuote {
   marketCap: number;
   peRatio: number;
   eps: number;
+  website?: string;
+  exchange?: string;
   timestamp: string;
 }
 

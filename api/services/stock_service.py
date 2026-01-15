@@ -29,6 +29,7 @@ class StockService:
             "peRatio": info.get('trailingPE'),
             "eps": info.get('trailingEps'),
             "website": info.get('website'),
+            "exchange": info.get('exchange'),
             "timestamp": datetime.now().isoformat()
         }
 
