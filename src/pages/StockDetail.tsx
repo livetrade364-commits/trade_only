@@ -121,8 +121,15 @@ const StockDetail: React.FC = () => {
                     {quote.exchange || 'US Market'}
                   </span>
                 </div>
+                <button
+                  onClick={toggleWishlist}
+                  className="ml-4 p-2 rounded-full hover:bg-gray-100 transition-colors"
+                >
+                  <Heart className={cn("h-6 w-6", isWishlisted ? "fill-red-500 text-red-500" : "text-gray-400")} />
+                </button>
               </div>
             </div>
+          </div>
 
             <div className="flex flex-col items-start md:items-end">
               <div className="flex items-baseline gap-2">
