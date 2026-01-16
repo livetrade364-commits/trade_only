@@ -1,5 +1,6 @@
 import React from 'react';
-import Navbar from './Navbar';
+import Sidebar from './Sidebar';
+import Header from './Header';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -7,13 +8,20 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
-      <Navbar />
-      <main className="py-10">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          {children}
-        </div>
-      </main>
+    <div className="min-h-screen bg-[#F5F6FA] flex">
+      {/* Sidebar - Fixed Position */}
+      <Sidebar />
+      
+      {/* Main Content Area */}
+      <div className="flex-1 ml-[260px] flex flex-col min-h-screen">
+        <Header />
+        
+        <main className="flex-1 p-8 overflow-y-auto">
+          <div className="max-w-[1600px] mx-auto animate-fade-in">
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
