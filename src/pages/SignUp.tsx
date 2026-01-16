@@ -75,7 +75,7 @@ const SignUp: React.FC = () => {
           </div>
           
           <div className="text-gray-500 text-sm">
-            © 2024 Lozzby Tech. All rights reserved.
+            © 2026 Lozzby Tech. All rights reserved.
           </div>
         </div>
       </div>
