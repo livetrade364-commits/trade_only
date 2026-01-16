@@ -53,17 +53,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const { user } = get();
     if (!user) return;
 
-    const { data, error } = await supabase
-      .from('watchlist')
-      .select('symbol')
-      .eq('user_id', user.id);
+    try {
+      const { data, error } = await supabase
+        .from('watchlist')
+        .select('symbol')
+        .eq('user_id', user.id);
 
-    if (error) {
+      if (error) throw error;
+      set({ wishlist: data ? data.map((item) => item.symbol) : [] });
+    } catch (error) {
       console.error('Error fetching wishlist:', error);
-      return;
+      // Don't clear wishlist on error to prevent flashing empty state
     }
-
-    set({ wishlist: data.map((item) => item.symbol) });
   },
 
   addToWishlist: async (symbol: string) => {
