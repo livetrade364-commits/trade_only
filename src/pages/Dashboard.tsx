@@ -24,6 +24,7 @@ import {
 } from 'recharts';
 import Layout from '../components/Layout';
 import { useMarketStore } from '../store/useMarketStore';
+import SectorCard from '../components/SectorCard';
 
 // Mock Data for Charts (Simulating the design)
 const btcData = [
@@ -56,13 +57,15 @@ const listingsData = [
 ];
 
 const Dashboard: React.FC = () => {
-  const { marketOverview, topGainers, fetchMarketOverview, fetchTopGainers } = useMarketStore();
+  const { marketOverview, topGainers, sectorPerformance, fetchMarketOverview, fetchTopGainers, fetchSectorPerformance } = useMarketStore();
   const [selectedPeriod, setSelectedPeriod] = useState('Weekly');
+  const [selectedIndex, setSelectedIndex] = useState('BTC'); // For BTC Trend dropdown (mock functionality)
 
   useEffect(() => {
     fetchMarketOverview();
     fetchTopGainers();
-  }, [fetchMarketOverview, fetchTopGainers]);
+    fetchSectorPerformance();
+  }, [fetchMarketOverview, fetchTopGainers, fetchSectorPerformance]);
 
   return (
     <Layout>
@@ -100,12 +103,26 @@ const Dashboard: React.FC = () => {
                 </div>
               </div>
               
-              <div className="w-[180px] bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-2xl flex flex-col items-center justify-center text-white relative overflow-hidden">
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-[1px]"></div>
-                <div className="relative z-10 text-center">
-                  <div className="text-2xl font-bold mb-1">$24.500</div>
-                  <div className="text-xs text-emerald-100">Total Value</div>
-                </div>
+              {/* Market Overview Small Card */}
+              <div className="w-[200px] flex flex-col space-y-2 overflow-y-auto max-h-[320px] scrollbar-hide">
+                 {/* Reusing SectorCard Logic but simpler for small view */}
+                 <div className="bg-gradient-to-b from-emerald-400 to-emerald-600 rounded-2xl p-4 text-white text-center mb-2 shrink-0">
+                    <div className="text-2xl font-bold mb-1">$24.500</div>
+                    <div className="text-xs text-emerald-100">Total Value</div>
+                 </div>
+                 
+                 {/* Live Market Sectors (Mini View) */}
+                 <h4 className="text-xs font-semibold text-gray-500 px-1">Market Sectors</h4>
+                 {sectorPerformance.slice(0, 3).map((sector) => (
+                   <div key={sector.symbol} className="bg-gray-50 p-2 rounded-lg border border-gray-100">
+                     <div className="flex justify-between items-center">
+                       <span className="text-xs font-medium text-gray-700 truncate max-w-[80px]">{sector.name}</span>
+                       <span className={`text-xs font-bold ${sector.changesPercentage >= 0 ? 'text-emerald-500' : 'text-red-500'}`}>
+                         {sector.changesPercentage >= 0 ? '+' : ''}{sector.changesPercentage.toFixed(2)}%
+                       </span>
+                     </div>
+                   </div>
+                 ))}
               </div>
             </div>
           </div>
@@ -113,10 +130,30 @@ const Dashboard: React.FC = () => {
           {/* BTC Price Trend Card */}
           <div className="lg:col-span-7 bg-white p-6 rounded-2xl shadow-sm border border-gray-100/50">
             <div className="flex items-center justify-between mb-6">
-              <h3 className="text-gray-700 font-semibold">BTC Price Trend</h3>
-              <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
-                {selectedPeriod} <ChevronDown size={16} />
-              </button>
+              <h3 className="text-gray-700 font-semibold">{selectedIndex} Price Trend</h3>
+              <div className="flex gap-2">
+                {/* Indices Dropdown */}
+                <div className="relative group">
+                  <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                    {selectedIndex} <ChevronDown size={16} />
+                  </button>
+                  <div className="absolute right-0 mt-1 w-32 bg-white border border-gray-100 rounded-lg shadow-lg hidden group-hover:block z-10">
+                    {['BTC', 'ETH', 'SPX', 'NDX', 'DJI'].map((idx) => (
+                      <button 
+                        key={idx}
+                        onClick={() => setSelectedIndex(idx)}
+                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 first:rounded-t-lg last:rounded-b-lg"
+                      >
+                        {idx}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <button className="flex items-center gap-2 px-3 py-1.5 border border-gray-200 rounded-lg text-sm text-gray-600 hover:bg-gray-50">
+                  {selectedPeriod} <ChevronDown size={16} />
+                </button>
+              </div>
             </div>
             
             <div className="h-[220px] w-full">
