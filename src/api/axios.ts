@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-const baseURL = envApiUrl.replace(/\/$/, '') + '/api';
+// Ensure we don't have double slashes and handle empty env var gracefully
+const baseURL = (envApiUrl.endsWith('/') ? envApiUrl.slice(0, -1) : envApiUrl) + '/api';
 
 console.log('API Base URL:', baseURL);
 
