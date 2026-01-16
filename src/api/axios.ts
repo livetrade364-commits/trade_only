@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const envApiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+const envApiUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
 // Ensure we don't have double slashes and handle empty env var gracefully
 const baseURL = (envApiUrl.endsWith('/') ? envApiUrl.slice(0, -1) : envApiUrl) + '/api';
 
