@@ -60,7 +60,10 @@ const Navbar: React.FC = () => {
 
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700 hidden md:block">{user.email}</span>
+                <Link to="/profile" className="flex items-center space-x-2 text-sm text-gray-700 hover:text-blue-600">
+                   <User className="h-5 w-5" />
+                   <span className="hidden md:block">{user.email}</span>
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="p-2 rounded-md text-gray-400 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"

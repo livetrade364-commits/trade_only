@@ -1,18 +1,31 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { useStockStore } from '../store/useStockStore';
+import { useAuthStore } from '../store/useAuthStore';
 import Layout from '../components/Layout';
 import StockChart from '../components/StockChart';
-import { Loader2, ArrowUp, ArrowDown, Activity, DollarSign, BarChart2, TrendingUp } from 'lucide-react';
+import { Loader2, ArrowUp, ArrowDown, Activity, DollarSign, BarChart2, TrendingUp, Heart } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getLogoUrl } from '../lib/logo';
 
 const StockDetail: React.FC = () => {
   const { symbol } = useParams<{ symbol: string }>();
   const { quote, history, isLoading, error, fetchQuote, fetchHistory } = useStockStore();
+  const { wishlist, addToWishlist, removeFromWishlist } = useAuthStore();
   const [period, setPeriod] = useState('1mo');
   const [imageError, setImageError] = useState(false);
   const pollingInterval = useRef<NodeJS.Timeout | null>(null);
+
+  const isWishlisted = quote ? wishlist.includes(quote.symbol) : false;
+
+  const toggleWishlist = () => {
+    if (!quote) return;
+    if (isWishlisted) {
+      removeFromWishlist(quote.symbol);
+    } else {
+      addToWishlist(quote.symbol);
+    }
+  };
 
   useEffect(() => {
     if (symbol) {
@@ -92,7 +105,8 @@ const StockDetail: React.FC = () => {
                   </div>
                 )}
               </div>
-              <div>
+              <div className="flex-1">
+                <div className="flex items-center">
                 <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
                   {quote.symbol}
                 </h1>
