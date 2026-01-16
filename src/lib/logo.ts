@@ -1,4 +1,6 @@
 export const getLogoUrl = (website?: string, symbol?: string) => {
+  const LOGO_DEV_PUBLIC_KEY = 'pk_BmKulLwASdauYisnhhi5Mg';
+  
   // Clean symbol for indices (remove ^)
   const cleanSymbol = symbol ? symbol.replace('^', '').toLowerCase() : '';
   
@@ -11,7 +13,7 @@ export const getLogoUrl = (website?: string, symbol?: string) => {
     try {
       let hostname = new URL(website).hostname;
       hostname = hostname.replace(/^www\./, '');
-      return `https://logo.clearbit.com/${hostname}`;
+      return `https://img.logo.dev/${hostname}?token=${LOGO_DEV_PUBLIC_KEY}`;
     } catch (e) {
       // invalid url
     }
@@ -19,7 +21,7 @@ export const getLogoUrl = (website?: string, symbol?: string) => {
   
   if (cleanSymbol) {
       // Fallback with symbol assumption
-      return `https://logo.clearbit.com/${cleanSymbol}.com`;
+      return `https://img.logo.dev/${cleanSymbol}.com?token=${LOGO_DEV_PUBLIC_KEY}`;
   }
 
   return null;
