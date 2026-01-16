@@ -91,7 +91,7 @@ const MarketOverview: React.FC = () => {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
             {topGainers.map((stock) => {
-              const logoUrl = stock.website ? `https://logo.clearbit.com/${stock.website}` : null;
+              const logoUrl = getLogoUrl(stock.website, stock.symbol);
               return (
               <Link to={`/stock/${stock.symbol}`} key={stock.symbol} className="block group">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 group-hover:border-emerald-200 group-hover:shadow-md transition-all">
