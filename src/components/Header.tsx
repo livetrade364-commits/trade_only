@@ -39,7 +39,6 @@ const Header: React.FC = () => {
             <div className="text-sm font-semibold text-gray-900">
               {user?.email?.split('@')[0] || 'UX Abdullah'}
             </div>
-            <div className="text-xs text-gray-500 font-medium">Admin</div>
           </div>
           <div className="w-10 h-10 rounded-full bg-gray-200 border-2 border-white shadow-sm overflow-hidden">
              <img 

@@ -90,13 +90,28 @@ const MarketOverview: React.FC = () => {
             <h2 className="text-xl font-bold text-gray-900">Top Gainers</h2>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {topGainers.map((stock) => (
+            {topGainers.map((stock) => {
+              const logoUrl = getLogoUrl(stock.website, stock.symbol);
+              return (
               <Link to={`/stock/${stock.symbol}`} key={stock.symbol} className="block group">
                 <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 group-hover:border-emerald-200 group-hover:shadow-md transition-all">
                   <div className="flex justify-between items-start mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold">
-                        {stock.symbol[0]}
+                      <div className="w-10 h-10 flex-shrink-0">
+                         {logoUrl ? (
+                            <img 
+                              src={logoUrl} 
+                              alt={stock.symbol} 
+                              className="w-10 h-10 rounded-full object-contain bg-white border border-gray-100 p-1"
+                              onError={(e) => {
+                                (e.target as HTMLImageElement).style.display = 'none';
+                                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                              }}
+                            />
+                          ) : null}
+                        <div className={`w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold ${logoUrl ? 'hidden' : ''}`}>
+                          {stock.symbol[0]}
+                        </div>
                       </div>
                       <div>
                         <h3 className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{stock.symbol}</h3>
@@ -121,7 +136,8 @@ const MarketOverview: React.FC = () => {
                   </div>
                 </div>
               </Link>
-            ))}
+            );
+            })}
              {topGainers.length === 0 && !isLoading && (
               <div className="col-span-full text-center text-gray-500 py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
                 No top gainers data available

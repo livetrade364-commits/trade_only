@@ -218,13 +218,28 @@ const Dashboard: React.FC = () => {
 
             <div className="grid grid-cols-3 gap-4">
               {/* Top Gainers as small cards */}
-              {topGainers.slice(0, 3).map((stock, index) => (
+              {topGainers.slice(0, 3).map((stock, index) => {
+                const logoUrl = getLogoUrl(stock.website, stock.symbol);
+                return (
                 <div key={stock.symbol} className="p-4 border border-gray-100 rounded-xl flex items-center justify-between hover:shadow-sm transition-shadow">
                   <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xs ${
-                      index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-blue-500' : 'bg-purple-500'
-                    }`}>
-                      {stock.symbol[0]}
+                    <div className="w-10 h-10 flex-shrink-0">
+                      {logoUrl ? (
+                        <img 
+                          src={logoUrl} 
+                          alt={stock.symbol} 
+                          className="w-10 h-10 rounded-full object-contain bg-white border border-gray-100 p-1"
+                          onError={(e) => {
+                            (e.target as HTMLImageElement).style.display = 'none';
+                            (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      ) : null}
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold text-xs ${
+                        logoUrl ? 'hidden' : ''
+                      } ${index === 0 ? 'bg-orange-500' : index === 1 ? 'bg-blue-500' : 'bg-purple-500'}`}>
+                        {stock.symbol[0]}
+                      </div>
                     </div>
                     <div>
                       <div className="text-sm font-bold text-gray-900 flex items-center gap-1">
@@ -240,7 +255,8 @@ const Dashboard: React.FC = () => {
                   </div>
                   <TrendingUp size={16} className={stock.changePercent >= 0 ? "text-emerald-500" : "text-red-500"} />
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
