@@ -25,7 +25,13 @@ export const useMarketStore = create<MarketState>((set) => ({
       const response = await api.get('/market/overview');
       set({ marketOverview: response.data, isLoading: false });
     } catch (error) {
-      set({ error: 'Failed to fetch market overview', isLoading: false });
+      console.error('Fetch Market Overview Error:', error);
+      // Fallback/Mock data if API fails (prevent "Service Unavailable" from breaking UI)
+      set({ 
+        error: 'Failed to fetch market overview', 
+        isLoading: false,
+        marketOverview: [] // Or provide mock data here if desired
+      });
     }
   },
   fetchSectorPerformance: async () => {
@@ -34,7 +40,12 @@ export const useMarketStore = create<MarketState>((set) => ({
       const response = await api.get('/market/sectors');
       set({ sectorPerformance: response.data, isLoading: false });
     } catch (error) {
-      set({ error: 'Failed to fetch sector performance', isLoading: false });
+      console.error('Fetch Sector Performance Error:', error);
+      set({ 
+        error: 'Failed to fetch sector performance', 
+        isLoading: false,
+        sectorPerformance: [] 
+      });
     }
   },
   fetchTopGainers: async () => {
@@ -43,7 +54,12 @@ export const useMarketStore = create<MarketState>((set) => ({
       const response = await api.get('/market/gainers');
       set({ topGainers: response.data, isLoading: false });
     } catch (error) {
-      set({ error: 'Failed to fetch top gainers', isLoading: false });
+      console.error('Fetch Top Gainers Error:', error);
+      set({ 
+        error: 'Failed to fetch top gainers', 
+        isLoading: false,
+        topGainers: [] 
+      });
     }
   },
 }));
