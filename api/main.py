@@ -5,9 +5,16 @@ from api.routers import stock, market
 app = FastAPI(title="Trade Only API")
 
 # Configure CORS
+origins = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "https://lozzbytech.onrender.com",
+    "https://trade-only.onrender.com"
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, replace with specific origins
+    allow_origins=origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

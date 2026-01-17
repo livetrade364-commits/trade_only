@@ -89,19 +89,19 @@ export default function Search() {
           <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
             <div className="divide-y divide-gray-100">
               {results.map((result) => (
-                <Link 
-                  key={result.symbol} 
+                <Link
+                  key={result.symbol}
                   to={`/stock/${result.symbol}`}
-                  className="flex items-center justify-between p-6 hover:bg-gray-50 transition-colors group"
+                  className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-emerald-500/30 hover:shadow-sm transition-all group"
                 >
-                  <div>
-                    <div className="flex items-center gap-3">
-                      <span className="font-bold text-lg text-gray-900">{result.symbol}</span>
-                      <span className="px-2 py-0.5 rounded bg-gray-100 text-xs font-medium text-gray-600">
-                        {result.exchange}
-                      </span>
+                  <div className="flex items-center gap-4">
+                    <StockLogo symbol={result.symbol} name={result.name} />
+                    <div>
+                      <h3 className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">
+                        {result.symbol}
+                      </h3>
+                      <p className="text-sm text-gray-500">{result.name}</p>
                     </div>
-                    <div className="text-gray-500 mt-1">{result.name}</div>
                   </div>
                   <ArrowRight className="text-gray-300 group-hover:text-emerald-600 transition-colors" />
                 </Link>
