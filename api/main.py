@@ -1,39 +1,22 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-import os
-from dotenv import load_dotenv
 from api.routers import stock, market
 
-load_dotenv()
-
-app = FastAPI(title="Trade Only API", description="Financial Market Data API", version="1.0.0")
+app = FastAPI(title="Trade Only API")
 
 # Configure CORS
-origins = ["*"]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],  # In production, replace with specific origins
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.include_router(stock.router)
-app.include_router(market.router)
+# Include routers
+app.include_router(stock.router, prefix="/api/stock", tags=["stock"])
+app.include_router(market.router, prefix="/api/market", tags=["market"])
 
 @app.get("/")
 async def root():
-    return {"status": "ok", "message": "Trade Only API is running"}
-
-@app.get("/api/health")
-async def health_check():
-    return {"status": "ok", "message": "Service is healthy"}
-
-@app.get("/ping")
-async def ping():
-    return {"status": "pong", "message": "Service is awake"}
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    return {"message": "Welcome to Trade Only API"}

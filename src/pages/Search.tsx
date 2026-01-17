@@ -1,68 +1,91 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { useStockStore } from '../store/useStockStore';
 import Layout from '../components/Layout';
-import { Loader2 } from 'lucide-react';
+import { Search as SearchIcon, ArrowRight } from 'lucide-react';
 
-const Search: React.FC = () => {
+interface SearchResult {
+  symbol: string;
+  name: string;
+  type: string;
+  exchange: string;
+}
+
+export default function Search() {
   const [searchParams] = useSearchParams();
-  const query = searchParams.get('q');
-  const { searchResults, isLoading, searchStocks } = useStockStore();
+  const query = searchParams.get('q') || '';
+  const [results, setResults] = useState<SearchResult[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     if (query) {
-      searchStocks(query);
+      handleSearch(query);
     }
-  }, [query, searchStocks]);
+  }, [query]);
+
+  const handleSearch = async (q: string) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`http://127.0.0.1:8000/api/stock/search?q=${encodeURIComponent(q)}`);
+      if (!response.ok) {
+        throw new Error('Search failed');
+      }
+      const data = await response.json();
+      setResults(data);
+    } catch (err) {
+      setError('Failed to fetch search results');
+      setResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Layout>
-      <div className="max-w-3xl mx-auto">
-        <h2 className="text-2xl font-bold text-gray-900 mb-6">Search Results for "{query}"</h2>
-        
-        {isLoading ? (
-          <div className="flex justify-center py-10">
-            <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
+      <div className="space-y-6">
+        <h1 className="text-2xl font-bold text-gray-900">
+          Search Results for "{query}"
+        </h1>
+
+        {loading ? (
+          <div className="space-y-4">
+             {[1, 2, 3].map((i) => (
+              <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse"></div>
+             ))}
           </div>
-        ) : searchResults.length > 0 ? (
-          <div className="bg-white shadow overflow-hidden sm:rounded-md">
-            <ul className="divide-y divide-gray-200">
-              {searchResults.map((result) => (
-                <li key={result.symbol}>
-                  <Link to={`/stock/${result.symbol}`} className="block hover:bg-gray-50">
-                    <div className="px-4 py-4 sm:px-6">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-medium text-blue-600 truncate">{result.symbol}</p>
-                        <div className="ml-2 flex-shrink-0 flex">
-                          <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                            {result.exchange}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="mt-2 sm:flex sm:justify-between">
-                        <div className="sm:flex">
-                          <p className="flex items-center text-sm text-gray-500">
-                            {result.name}
-                          </p>
-                        </div>
-                        <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                          <p>{result.type}</p>
-                        </div>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        ) : error ? (
+           <div className="p-4 bg-red-50 text-red-600 rounded-xl">{error}</div>
+        ) : results.length === 0 ? (
+          <div className="text-center py-12 text-gray-500 bg-white rounded-2xl border border-gray-100">
+            <SearchIcon size={48} className="mx-auto mb-4 text-gray-300" />
+            <p className="text-lg">No results found for "{query}"</p>
           </div>
         ) : (
-          <div className="text-center py-10 bg-white shadow rounded-lg">
-            <p className="text-gray-500">No results found.</p>
+          <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm">
+            <div className="divide-y divide-gray-100">
+              {results.map((result) => (
+                <Link 
+                  key={result.symbol} 
+                  to={`/stock/${result.symbol}`}
+                  className="flex items-center justify-between p-6 hover:bg-gray-50 transition-colors group"
+                >
+                  <div>
+                    <div className="flex items-center gap-3">
+                      <span className="font-bold text-lg text-gray-900">{result.symbol}</span>
+                      <span className="px-2 py-0.5 rounded bg-gray-100 text-xs font-medium text-gray-600">
+                        {result.exchange}
+                      </span>
+                    </div>
+                    <div className="text-gray-500 mt-1">{result.name}</div>
+                  </div>
+                  <ArrowRight className="text-gray-300 group-hover:text-emerald-600 transition-colors" />
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </div>
     </Layout>
   );
-};
-
-export default Search;
+}

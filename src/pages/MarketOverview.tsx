@@ -1,172 +1,218 @@
-import React, { useEffect } from 'react';
-import { useMarketStore } from '../store/useMarketStore';
-import Layout from '../components/Layout';
-import SectorCard from '../components/SectorCard';
-import { Loader2, TrendingUp, TrendingDown, Activity, BarChart2 } from 'lucide-react';
-import { cn } from '../lib/utils';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import Layout from '../components/Layout';
+import { ArrowUp, ArrowDown, RefreshCw, TrendingUp, TrendingDown, Activity, Zap, HeartPulse, Pill } from 'lucide-react';
+import { cn } from '../lib/utils';
+import { getLogoUrl } from '../lib/logo';
 
-const MarketOverview: React.FC = () => {
-  const { 
-    marketOverview,
-    topGainers,
-    sectorPerformance, 
-    isLoading, 
-    error, 
-    fetchMarketOverview,
-    fetchTopGainers,
-    fetchSectorPerformance,
-  } = useMarketStore();
+interface StockData {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  percent_change: number;
+}
 
-  useEffect(() => {
-    fetchMarketOverview();
-    fetchTopGainers();
-    fetchSectorPerformance();
-  }, [fetchMarketOverview, fetchTopGainers, fetchSectorPerformance]);
+const StockLogo = ({ symbol, name }: { symbol: string, name: string }) => {
+  const [error, setError] = useState(false);
+  const logoUrl = getLogoUrl(undefined, symbol);
 
-  if (isLoading && marketOverview.length === 0 && topGainers.length === 0 && sectorPerformance.length === 0) {
+  if (error || !logoUrl) {
     return (
-      <Layout>
-        <div className="flex justify-center items-center h-[60vh]">
-          <Loader2 className="h-12 w-12 animate-spin text-emerald-600" />
-        </div>
-      </Layout>
+      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gray-100 text-gray-600">
+        {symbol[0]}
+      </div>
     );
   }
 
   return (
-    <Layout>
-      <div className="space-y-10 animate-fade-in">
-        <h1 className="text-3xl font-bold text-gray-900">Market Overview</h1>
-
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
-            <p className="text-red-700">{error}</p>
-          </div>
-        )}
-
-        {/* Major Indices Section */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <Activity className="h-6 w-6 text-emerald-600" />
-            <h2 className="text-xl font-bold text-gray-900">Major Indices</h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            {marketOverview.map((index) => (
-              <div key={index.symbol} className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-bold text-gray-900">{index.symbol}</h3>
-                  {index.changePercent >= 0 ? (
-                    <TrendingUp className="h-4 w-4 text-emerald-500" />
-                  ) : (
-                    <TrendingDown className="h-4 w-4 text-red-500" />
-                  )}
-                </div>
-                <div className="text-2xl font-bold text-gray-900 mb-1">
-                  ${index.price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                </div>
-                <div className={cn(
-                  "flex items-center text-sm font-medium",
-                  index.changePercent >= 0 ? "text-emerald-600" : "text-red-600"
-                )}>
-                  <span>{index.change >= 0 ? '+' : ''}{index.change.toFixed(2)}</span>
-                  <span className="mx-1">|</span>
-                  <span>{index.changePercent >= 0 ? '+' : ''}{index.changePercent.toFixed(2)}%</span>
-                </div>
-              </div>
-            ))}
-            {marketOverview.length === 0 && !isLoading && (
-              <div className="col-span-full text-center text-gray-500 py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                No market indices data available
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Top Gainers Section */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <TrendingUp className="h-6 w-6 text-emerald-600" />
-            <h2 className="text-xl font-bold text-gray-900">Top Gainers</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {topGainers.map((stock) => {
-              const logoUrl = getLogoUrl(stock.website, stock.symbol);
-              return (
-              <Link to={`/stock/${stock.symbol}`} key={stock.symbol} className="block group">
-                <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 group-hover:border-emerald-200 group-hover:shadow-md transition-all">
-                  <div className="flex justify-between items-start mb-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 flex-shrink-0">
-                         {logoUrl ? (
-                            <img 
-                              src={logoUrl} 
-                              alt={stock.symbol} 
-                              className="w-10 h-10 rounded-full object-contain bg-white border border-gray-100 p-1"
-                              onError={(e) => {
-                                (e.target as HTMLImageElement).style.display = 'none';
-                                (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
-                              }}
-                            />
-                          ) : null}
-                        <div className={`w-10 h-10 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600 font-bold ${logoUrl ? 'hidden' : ''}`}>
-                          {stock.symbol[0]}
-                        </div>
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-gray-900 group-hover:text-emerald-600 transition-colors">{stock.symbol}</h3>
-                        <p className="text-xs text-gray-500 truncate max-w-[120px]">{stock.name}</p>
-                      </div>
-                    </div>
-                    <div className="px-2.5 py-1 bg-emerald-50 text-emerald-700 text-xs font-bold rounded-full">
-                      +{stock.changePercent.toFixed(2)}%
-                    </div>
-                  </div>
-                  <div className="flex justify-between items-end">
-                    <div>
-                      <div className="text-lg font-bold text-gray-900">${stock.price.toFixed(2)}</div>
-                      <div className="text-xs text-emerald-600 font-medium">
-                        +${stock.change.toFixed(2)} Today
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[10px] text-gray-400 uppercase tracking-wider">Volume</div>
-                      <div className="text-xs font-semibold text-gray-600">{(stock.volume / 1000000).toFixed(1)}M</div>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            );
-            })}
-             {topGainers.length === 0 && !isLoading && (
-              <div className="col-span-full text-center text-gray-500 py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                No top gainers data available
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* Sector Performance Section */}
-        <section>
-          <div className="flex items-center gap-2 mb-6">
-            <BarChart2 className="h-6 w-6 text-emerald-600" />
-            <h2 className="text-xl font-bold text-gray-900">Sector Performance</h2>
-          </div>
-          
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {sectorPerformance.map((sector) => (
-              <SectorCard key={sector.symbol} data={sector} />
-            ))}
-            {sectorPerformance.length === 0 && !isLoading && (
-              <div className="col-span-full text-center text-gray-500 py-8 bg-gray-50 rounded-xl border border-dashed border-gray-200">
-                No sector performance data available
-              </div>
-            )}
-          </div>
-        </section>
-      </div>
-    </Layout>
+    <img 
+      src={logoUrl} 
+      alt={name}
+      className="w-10 h-10 rounded-full object-contain bg-white border border-gray-100 p-1"
+      onError={() => setError(true)}
+    />
   );
 };
 
-export default MarketOverview;
+export default function MarketOverview() {
+  const [moversType, setMoversType] = useState<'gainers' | 'losers'>('gainers');
+  const [movers, setMovers] = useState<StockData[]>([]);
+  const [techStocks, setTechStocks] = useState<StockData[]>([]);
+  const [healthStocks, setHealthStocks] = useState<StockData[]>([]);
+  const [pharmaStocks, setPharmaStocks] = useState<StockData[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const [moversRes, techRes, healthRes, pharmaRes] = await Promise.all([
+        fetch(`http://127.0.0.1:8000/api/market/movers?type=${moversType}`),
+        fetch('http://127.0.0.1:8000/api/market/sector/tech'),
+        fetch('http://127.0.0.1:8000/api/market/sector/health'),
+        fetch('http://127.0.0.1:8000/api/market/sector/pharma')
+      ]);
+
+      setMovers(await moversRes.json());
+      setTechStocks(await techRes.json());
+      setHealthStocks(await healthRes.json());
+      setPharmaStocks(await pharmaRes.json());
+    } catch (error) {
+      console.error('Failed to fetch market data', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [moversType]);
+
+  const StockCard = ({ stock }: { stock: StockData }) => (
+    <Link 
+      to={`/stock/${stock.symbol}`}
+      className="block bg-white p-4 rounded-xl border border-gray-100 hover:shadow-md transition-shadow"
+    >
+      <div className="flex justify-between items-start">
+        <div className="flex items-center gap-3">
+           <StockLogo symbol={stock.symbol} name={stock.name} />
+           <div>
+             <h4 className="font-bold text-gray-900">{stock.symbol}</h4>
+             <p className="text-xs text-gray-500 truncate w-20">{stock.name}</p>
+           </div>
+        </div>
+        <div className={`text-sm font-medium ${stock.percent_change >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>
+          {stock.percent_change >= 0 ? '+' : ''}{stock.percent_change.toFixed(2)}%
+        </div>
+      </div>
+      <div className="mt-3 font-mono font-semibold text-gray-900 text-right">
+        ${stock.price.toFixed(2)}
+      </div>
+    </Link>
+  );
+
+  return (
+    <Layout>
+      <div className="space-y-8 animate-fade-in">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Market Overview</h1>
+            <p className="text-gray-500">In-depth analysis of sectors and top movers</p>
+          </div>
+          <button 
+            onClick={fetchData}
+            className="p-2 text-gray-500 hover:text-emerald-600 transition-colors bg-white border border-gray-200 rounded-lg shadow-sm w-fit"
+            title="Refresh Data"
+          >
+            <RefreshCw size={20} className={loading ? "animate-spin" : ""} />
+          </button>
+        </div>
+
+        {/* Top Movers Section */}
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <Activity className="h-5 w-5 mr-2 text-blue-500" />
+              Market Movers
+            </h3>
+            <div className="flex bg-gray-100 p-1 rounded-lg w-fit">
+              <button
+                onClick={() => setMoversType('gainers')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all",
+                  moversType === 'gainers'
+                    ? "bg-white text-emerald-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-900"
+                )}
+              >
+                <TrendingUp size={16} />
+                Top Gainers
+              </button>
+              <button
+                onClick={() => setMoversType('losers')}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2 text-sm font-semibold rounded-md transition-all",
+                  moversType === 'losers'
+                    ? "bg-white text-red-600 shadow-sm"
+                    : "text-gray-500 hover:text-gray-900"
+                )}
+              >
+                <TrendingDown size={16} />
+                Top Losers
+              </button>
+            </div>
+          </div>
+          
+          <div className="divide-y divide-gray-100">
+            {loading ? (
+              <div className="p-8 text-center text-gray-400">Loading market data...</div>
+            ) : movers.length === 0 ? (
+              <div className="p-8 text-center text-gray-400">No data available</div>
+            ) : (
+              movers.map((mover) => (
+                <Link 
+                  key={mover.symbol}
+                  to={`/stock/${mover.symbol}`}
+                  className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center gap-4">
+                    <StockLogo symbol={mover.symbol} name={mover.name} />
+                    <div>
+                      <h4 className="font-bold text-gray-900">{mover.symbol}</h4>
+                      <p className="text-xs text-gray-500">{mover.name}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-mono font-medium text-gray-900">${mover.price.toFixed(2)}</div>
+                    <div className={cn(
+                      "text-xs font-medium flex items-center justify-end mt-0.5",
+                      mover.percent_change >= 0 ? "text-emerald-600" : "text-red-600"
+                    )}>
+                      {mover.percent_change >= 0 ? '+' : ''}{mover.percent_change.toFixed(2)}%
+                    </div>
+                  </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </div>
+
+        {/* Sector Sections */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Tech Sector */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <Zap className="h-5 w-5 mr-2 text-yellow-500" />
+              Technology
+            </h3>
+            <div className="space-y-3">
+              {techStocks.map(stock => <StockCard key={stock.symbol} stock={stock} />)}
+            </div>
+          </div>
+
+          {/* Health Sector */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <HeartPulse className="h-5 w-5 mr-2 text-rose-500" />
+              Healthcare
+            </h3>
+            <div className="space-y-3">
+              {healthStocks.map(stock => <StockCard key={stock.symbol} stock={stock} />)}
+            </div>
+          </div>
+
+          {/* Pharma Sector */}
+          <div className="space-y-4">
+            <h3 className="text-lg font-bold text-gray-900 flex items-center">
+              <Pill className="h-5 w-5 mr-2 text-purple-500" />
+              Pharma
+            </h3>
+            <div className="space-y-3">
+              {pharmaStocks.map(stock => <StockCard key={stock.symbol} stock={stock} />)}
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  );
+}

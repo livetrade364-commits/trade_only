@@ -1,28 +1,22 @@
-export const getLogoUrl = (website?: string, symbol?: string) => {
-  const LOGO_DEV_PUBLIC_KEY = 'pk_BmKulLwASdauYisnhhi5Mg';
-  
-  // Clean symbol for indices (remove ^)
-  const cleanSymbol = symbol ? symbol.replace('^', '').toLowerCase() : '';
-  
-  // Don't try to fetch logos for indices as they don't have websites/logos usually
-  if (symbol && symbol.startsWith('^')) {
-      return null;
-  }
+const LOGO_BASE_URL = 'https://img.logo.dev';
+const PUBLISHABLE_KEY = import.meta.env.VITE_LOGODEV_KEY;
 
+export const getLogoUrl = (website?: string, symbol?: string) => {
   if (website) {
     try {
-      let hostname = new URL(website).hostname;
-      hostname = hostname.replace(/^www\./, '');
-      return `https://img.logo.dev/${hostname}?token=${LOGO_DEV_PUBLIC_KEY}`;
+      const domain = new URL(website.startsWith('http') ? website : `https://${website}`).hostname;
+      return `${LOGO_BASE_URL}/${domain}?token=${PUBLISHABLE_KEY}`;
     } catch (e) {
-      // invalid url
+      // Fallback
     }
   }
   
-  if (cleanSymbol) {
-      // Fallback with symbol assumption
-      return `https://img.logo.dev/${cleanSymbol}.com?token=${LOGO_DEV_PUBLIC_KEY}`;
+  // Enhanced fallback logic: Try to construct domain from symbol/name if website is missing
+  if (symbol) {
+    // Basic heuristic for common tickers
+    const cleanSymbol = symbol.replace('^', '').toLowerCase();
+    return `${LOGO_BASE_URL}/${cleanSymbol}.com?token=${PUBLISHABLE_KEY}`;
   }
-
+  
   return null;
 };

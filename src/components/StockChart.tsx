@@ -8,52 +8,62 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { StockHistory } from '../types';
 
 interface StockChartProps {
-  data: StockHistory;
+  data: {
+    date: string;
+    close: number;
+  }[];
 }
 
 const StockChart: React.FC<StockChartProps> = ({ data }) => {
-  const chartData = data.data.map((item) => ({
-    ...item,
-    dateStr: new Date(item.date).toLocaleDateString(),
-  }));
+  const isPositive = data.length > 0 && data[data.length - 1].close >= data[0].close;
+  const color = isPositive ? '#10B981' : '#EF4444'; // emerald-500 or red-500
 
   return (
-    <div className="h-[400px] w-full bg-white p-4 rounded-lg shadow">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Price History ({data.period})</h3>
+    <div style={{ width: '100%', height: '100%' }}>
       <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={chartData}>
+        <AreaChart data={data}>
           <defs>
             <linearGradient id="colorPrice" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="5%" stopColor="#2563eb" stopOpacity={0.1} />
-              <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
+              <stop offset="5%" stopColor={color} stopOpacity={0.3} />
+              <stop offset="95%" stopColor={color} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F3F4F6" />
           <XAxis 
-            dataKey="dateStr" 
-            tick={{ fontSize: 12 }} 
-            tickMargin={10}
-            minTickGap={30}
+            dataKey="date" 
+            hide 
+            // axisLine={false} 
+            // tickLine={false}
           />
           <YAxis 
             domain={['auto', 'auto']} 
-            tick={{ fontSize: 12 }}
+            orientation="right" 
+            tick={{ fontSize: 12, fill: '#9CA3AF' }}
+            axisLine={false}
+            tickLine={false}
             tickFormatter={(value) => `$${value.toFixed(2)}`}
           />
           <Tooltip 
-            contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)' }}
+            contentStyle={{ 
+              backgroundColor: '#fff', 
+              borderRadius: '12px', 
+              border: '1px solid #E5E7EB',
+              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            }}
+            itemStyle={{ color: '#1F2937', fontWeight: 600 }}
             formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
+            labelStyle={{ color: '#6B7280', marginBottom: '0.25rem' }}
+            labelFormatter={(label) => new Date(label).toLocaleDateString()}
           />
-          <Area
-            type="monotone"
-            dataKey="close"
-            stroke="#2563eb"
+          <Area 
+            type="monotone" 
+            dataKey="close" 
+            stroke={color} 
             strokeWidth={2}
-            fillOpacity={1}
-            fill="url(#colorPrice)"
+            fillOpacity={1} 
+            fill="url(#colorPrice)" 
           />
         </AreaChart>
       </ResponsiveContainer>

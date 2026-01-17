@@ -1,107 +1,158 @@
 import { create } from 'zustand';
 import { supabase } from '../lib/supabase';
-import { User } from '@supabase/supabase-js';
+
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+}
 
 interface AuthState {
   user: User | null;
-  isLoading: boolean;
+  isAuthenticated: boolean;
   wishlist: string[];
-  checkUser: () => Promise<void>;
+  isLoading: boolean;
+  initialize: () => Promise<void>;
+  signIn: (email: string) => Promise<{ error: any }>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
-  fetchWishlist: () => Promise<void>;
   addToWishlist: (symbol: string) => Promise<void>;
   removeFromWishlist: (symbol: string) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthState>((set, get) => ({
   user: null,
-  isLoading: true,
+  isAuthenticated: false,
   wishlist: [],
+  isLoading: true,
 
-  checkUser: async () => {
+  initialize: async () => {
     try {
-      const { data: { session } } = await supabase.auth.getSession();
-      const user = session?.user ?? null;
-      set({ user, isLoading: false });
+      // Check for existing session first
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        // If session is invalid (e.g. refresh token missing), clear local state
+        console.warn("Session check failed", error);
+        set({ user: null, isAuthenticated: false, wishlist: [] });
+        return;
+      }
+      
+      if (session?.user) {
+        const user = { 
+          id: session.user.id, 
+          email: session.user.email!,
+          name: session.user.user_metadata?.name
+        };
+        
+        set({ user, isAuthenticated: true });
 
-      if (user) {
-        get().fetchWishlist();
+        // Fetch wishlist from DB
+        const { data: wishlistData } = await supabase
+          .from('wishlist')
+          .select('symbol')
+          .eq('user_id', user.id);
+
+        if (wishlistData) {
+          set({ wishlist: wishlistData.map(item => item.symbol) });
+        }
       }
 
-      // Listen for changes on auth state (signed in, signed out, etc.)
-      supabase.auth.onAuthStateChange((_event, session) => {
-        const currentUser = session?.user ?? null;
-        set({ user: currentUser, isLoading: false });
-        if (currentUser) {
-            get().fetchWishlist();
+      // Listen for auth changes
+      supabase.auth.onAuthStateChange(async (event, session) => {
+        // Handle specific auth events if needed
+        if (event === 'SIGNED_OUT' || event === 'USER_DELETED') {
+           set({ user: null, isAuthenticated: false, wishlist: [] });
+           return;
+        }
+
+        if (session?.user) {
+          const user = { 
+            id: session.user.id, 
+            email: session.user.email!,
+            name: session.user.user_metadata?.name
+          };
+
+          set({ user, isAuthenticated: true });
+
+          // Fetch wishlist on auth change
+          const { data: wishlistData } = await supabase
+            .from('wishlist')
+            .select('symbol')
+            .eq('user_id', user.id);
+
+          if (wishlistData) {
+            set({ wishlist: wishlistData.map(item => item.symbol) });
+          }
         } else {
-            set({ wishlist: [] });
+          set({ user: null, isAuthenticated: false, wishlist: [] });
         }
       });
     } catch (error) {
-      console.error('Error checking user session:', error);
+      console.error('Auth initialization error:', error);
+      // Ensure we don't leave the app in a weird loading state
+      set({ user: null, isAuthenticated: false });
+    } finally {
       set({ isLoading: false });
     }
   },
 
+  signIn: async (email: string) => {
+    return { error: null };
+  },
+
+  verifyOtp: async (email, token) => {
+    return { error: null };
+  },
+
   signOut: async () => {
-    await supabase.auth.signOut();
-    set({ user: null, wishlist: [] });
-  },
-
-  fetchWishlist: async () => {
-    const { user } = get();
-    if (!user) return;
-
     try {
-      const { data, error } = await supabase
-        .from('watchlist')
-        .select('symbol')
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-      set({ wishlist: data ? data.map((item) => item.symbol) : [] });
+      await supabase.auth.signOut();
     } catch (error) {
-      console.error('Error fetching wishlist:', error);
-      // Don't clear wishlist on error to prevent flashing empty state
+      console.error('Error signing out:', error);
+    } finally {
+      set({ user: null, isAuthenticated: false, wishlist: [] });
     }
   },
 
-  addToWishlist: async (symbol: string) => {
+  addToWishlist: async (symbol) => {
+    const { user, wishlist } = get();
+    if (!user) return;
+    
+    // Optimistic update
+    if (!wishlist.includes(symbol)) {
+      set({ wishlist: [...wishlist, symbol] });
+      
+      const { error } = await supabase
+        .from('wishlist')
+        .insert({ user_id: user.id, symbol });
+        
+      if (error) {
+        console.error('Failed to add to wishlist:', error);
+        // Revert on error
+        set({ wishlist });
+      }
+    }
+  },
+
+  removeFromWishlist: async (symbol) => {
     const { user, wishlist } = get();
     if (!user) return;
 
     // Optimistic update
-    set({ wishlist: [...wishlist, symbol] });
+    const newWishlist = wishlist.filter(s => s !== symbol);
+    set({ wishlist: newWishlist });
 
     const { error } = await supabase
-      .from('watchlist')
-      .insert([{ user_id: user.id, symbol }]);
-
-    if (error) {
-      console.error('Error adding to wishlist:', error);
-      // Revert on error
-      set({ wishlist: wishlist });
-    }
-  },
-
-  removeFromWishlist: async (symbol: string) => {
-    const { user, wishlist } = get();
-    if (!user) return;
-
-    // Optimistic update
-    set({ wishlist: wishlist.filter((s) => s !== symbol) });
-
-    const { error } = await supabase
-      .from('watchlist')
+      .from('wishlist')
       .delete()
       .eq('user_id', user.id)
       .eq('symbol', symbol);
 
     if (error) {
-      console.error('Error removing from wishlist:', error);
+      console.error('Failed to remove from wishlist:', error);
       // Revert on error
-      set({ wishlist: wishlist });
+      set({ wishlist });
     }
-  },
+  }
 }));
