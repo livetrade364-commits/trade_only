@@ -4,6 +4,7 @@ import Layout from '../components/Layout';
 import { useAuthStore } from '../store/useAuthStore';
 import { ArrowUp, ArrowDown, Trash2, Loader2 } from 'lucide-react';
 import { getLogoUrl } from '../lib/logo';
+import { API_URL } from '../lib/utils';
 
 interface WatchlistItem {
   symbol: string;
@@ -53,7 +54,7 @@ export default function Watchlist() {
         // In a real app, we'd have a bulk endpoint
         const promises = wishlist.map(async (symbol) => {
           try {
-            const res = await fetch(`http://127.0.0.1:8000/api/stock/${symbol}`);
+            const res = await fetch(`${API_URL}/api/stock/${symbol}`);
             if (!res.ok) return null;
             const quote = await res.json();
             return {
