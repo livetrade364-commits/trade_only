@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { API_URL } from '../lib/utils';
 
 interface StockQuote {
   symbol: string;
