@@ -46,7 +46,7 @@ export const useStockStore = create<StockState>((set) => ({
   fetchQuote: async (symbol: string) => {
     set({ isLoading: true, error: null });
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/stock/${symbol}`);
+      const response = await fetch(`${API_URL}/api/stock/${symbol}`);
       if (!response.ok) throw new Error('Failed to fetch quote');
       
       const data = await response.json();
