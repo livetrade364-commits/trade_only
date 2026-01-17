@@ -82,7 +82,7 @@ export const useStockStore = create<StockState>((set) => ({
     try {
       // Map frontend periods to yfinance periods if needed
       // yfinance supports: 1d, 5d, 1mo, 3mo, 6mo, 1y, 2y, 5y, 10y, ytd, max
-      const response = await fetch(`http://127.0.0.1:8000/api/stock/${symbol}/history?period=${period}`);
+      const response = await fetch(`${API_URL}/api/stock/${symbol}/history?period=${period}`);
       if (!response.ok) throw new Error('Failed to fetch history');
       
       const data = await response.json();
