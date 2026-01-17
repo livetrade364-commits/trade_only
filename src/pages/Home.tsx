@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { ArrowUp, ArrowDown, RefreshCw, TrendingUp } from 'lucide-react';
 import { getLogoUrl } from '../lib/logo';
+import { API_URL } from '../lib/utils';
 
 interface MarketIndex {
   symbol: string;
