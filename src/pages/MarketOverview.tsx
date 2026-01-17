@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { ArrowUp, ArrowDown, RefreshCw, TrendingUp, TrendingDown, Activity, Zap, HeartPulse, Pill } from 'lucide-react';
-import { cn } from '../lib/utils';
+import { cn, API_URL } from '../lib/utils';
 import { getLogoUrl } from '../lib/logo';
 
 interface StockData {
@@ -47,10 +47,10 @@ export default function MarketOverview() {
     setLoading(true);
     try {
       const [moversRes, techRes, healthRes, pharmaRes] = await Promise.all([
-        fetch(`http://127.0.0.1:8000/api/market/movers?type=${moversType}`),
-        fetch('http://127.0.0.1:8000/api/market/sector/tech'),
-        fetch('http://127.0.0.1:8000/api/market/sector/health'),
-        fetch('http://127.0.0.1:8000/api/market/sector/pharma')
+        fetch(`${API_URL}/api/market/movers?type=${moversType}`),
+        fetch(`${API_URL}/api/market/sector/tech`),
+        fetch(`${API_URL}/api/market/sector/health`),
+        fetch(`${API_URL}/api/market/sector/pharma`)
       ]);
 
       setMovers(await moversRes.json());

@@ -45,8 +45,8 @@ export default function Home() {
     setError(null);
     try {
       const [overviewRes, moversRes] = await Promise.all([
-        fetch('http://127.0.0.1:8000/api/market/overview'),
-        fetch('http://127.0.0.1:8000/api/market/movers')
+        fetch(`${API_URL}/api/market/overview`),
+        fetch(`${API_URL}/api/market/movers`)
       ]);
 
       if (!overviewRes.ok || !moversRes.ok) {
@@ -90,7 +90,7 @@ export default function Home() {
         {error && (
           <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100">
             {error}
-            <p className="text-sm mt-1 text-red-500">Make sure the backend server is running at http://127.0.0.1:8000</p>
+            <p className="text-sm mt-1 text-red-500">Make sure the backend server is running.</p>
           </div>
         )}
 

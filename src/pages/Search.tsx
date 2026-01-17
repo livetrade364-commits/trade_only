@@ -2,6 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
 import Layout from '../components/Layout';
 import { Search as SearchIcon, ArrowRight } from 'lucide-react';
+import { API_URL } from '../lib/utils';
+import { getLogoUrl } from '../lib/logo';
 
 interface SearchResult {
   symbol: string;
@@ -9,6 +11,28 @@ interface SearchResult {
   type: string;
   exchange: string;
 }
+
+const StockLogo = ({ symbol, name }: { symbol: string, name: string }) => {
+  const [error, setError] = useState(false);
+  const logoUrl = getLogoUrl(undefined, symbol);
+
+  if (error || !logoUrl) {
+    return (
+      <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gray-100 text-gray-600">
+        {symbol[0]}
+      </div>
+    );
+  }
+
+  return (
+    <img 
+      src={logoUrl} 
+      alt={name}
+      className="w-10 h-10 rounded-full object-contain bg-white border border-gray-100 p-1"
+      onError={() => setError(true)}
+    />
+  );
+};
 
 export default function Search() {
   const [searchParams] = useSearchParams();
@@ -27,7 +51,7 @@ export default function Search() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`http://127.0.0.1:8000/api/stock/search?q=${encodeURIComponent(q)}`);
+      const response = await fetch(`${API_URL}/api/stock/search?q=${encodeURIComponent(q)}`);
       if (!response.ok) {
         throw new Error('Search failed');
       }
