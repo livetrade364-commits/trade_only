@@ -27,6 +27,10 @@ class AsyncCache:
 # Initialize caches
 market_cache = AsyncCache(ttl_seconds=300) # 5 minutes cache
 
+# Global variable to track last NSE request time
+last_nse_request_time = 0
+NSE_REQUEST_DELAY = 60 # 60 seconds delay
+
 async def get_overview():
     cache_key = "global_overview"
     cached_data = await market_cache.get(cache_key)
@@ -60,8 +64,18 @@ async def get_indian_overview():
     if cached_data:
         return cached_data
 
+    # Check for rate limiting
+    global last_nse_request_time
+    current_time = time.time()
+    if current_time - last_nse_request_time < NSE_REQUEST_DELAY:
+        print("Rate limit: Serving fallback or cached data for Indian Overview")
+        # If cache missed but rate limited, try to get stale cache or fallback
+        # Since we don't have stale cache logic, go to fallback
+        return await get_indian_overview_fallback()
+
     # Indian indices using nselib
     try:
+        last_nse_request_time = time.time()
         # Fetch indices data using nselib
         df = await asyncio.to_thread(capital_market.market_watch_all_indices)
         
@@ -176,7 +190,15 @@ async def get_indian_movers(mover_type: str = "gainers"):
     if cached_data:
         return cached_data
 
+    # Check for rate limiting
+    global last_nse_request_time
+    current_time = time.time()
+    if current_time - last_nse_request_time < NSE_REQUEST_DELAY:
+        print(f"Rate limit: Serving fallback data for Indian Movers ({mover_type})")
+        return await get_indian_movers_fallback(mover_type)
+
     try:
+        last_nse_request_time = time.time()
         # Using nselib for top gainers/losers
         # 'to_get' parameter accepts 'gainers' or 'loosers' (note the spelling in nselib)
         nselib_type = "loosers" if mover_type == "losers" else "gainers"
