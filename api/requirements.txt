@@ -5,3 +5,4 @@ pandas
 nselib
 requests
 scipy
+finnhub-python
