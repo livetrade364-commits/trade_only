@@ -1,8 +1,37 @@
 import yfinance as yf
 import asyncio
 from nselib import capital_market
+from functools import lru_cache
+from datetime import datetime, timedelta
+import time
+
+# Simple in-memory cache with TTL
+class AsyncCache:
+    def __init__(self, ttl_seconds=60):
+        self.cache = {}
+        self.ttl = ttl_seconds
+
+    async def get(self, key):
+        if key in self.cache:
+            data, timestamp = self.cache[key]
+            if time.time() - timestamp < self.ttl:
+                return data
+            else:
+                del self.cache[key]
+        return None
+
+    async def set(self, key, value):
+        self.cache[key] = (value, time.time())
+
+# Initialize caches
+market_cache = AsyncCache(ttl_seconds=300) # 5 minutes cache
 
 async def get_overview():
+    cache_key = "global_overview"
+    cached_data = await market_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     # Common indices
     indices = ["^GSPC", "^DJI", "^IXIC", "^RUT"]
     data = []
@@ -21,9 +50,15 @@ async def get_overview():
         except Exception:
             continue
             
+    await market_cache.set(cache_key, data)
     return data
 
 async def get_indian_overview():
+    cache_key = "indian_overview"
+    cached_data = await market_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     # Indian indices using nselib
     try:
         # Fetch indices data using nselib
@@ -63,6 +98,7 @@ async def get_indian_overview():
              except Exception:
                  pass
 
+        await market_cache.set(cache_key, results)
         return results
     except Exception as e:
         print(f"NSE Indices Error: {e}")
@@ -90,6 +126,11 @@ async def get_indian_overview_fallback():
     return data
 
 async def get_movers(mover_type: str = "gainers"):
+    cache_key = f"global_movers_{mover_type}"
+    cached_data = await market_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     # Simulated list of active stocks to filter from
     symbols = [
         "NVDA", "TSLA", "AAPL", "MSFT", "AMD", "AMZN", "GOOGL", "META", "NFLX", "INTC",
@@ -122,9 +163,16 @@ async def get_movers(mover_type: str = "gainers"):
         filtered = [m for m in movers if m["percent_change"] < 0]
         filtered.sort(key=lambda x: x["percent_change"]) # Most negative first
         
-    return filtered[:5] # Return top 5
+    result = filtered[:5] # Return top 5
+    await market_cache.set(cache_key, result)
+    return result
 
 async def get_indian_movers(mover_type: str = "gainers"):
+    cache_key = f"indian_movers_{mover_type}"
+    cached_data = await market_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     try:
         # Using nselib for top gainers/losers
         # 'to_get' parameter accepts 'gainers' or 'loosers' (note the spelling in nselib)
@@ -145,12 +193,19 @@ async def get_indian_movers(mover_type: str = "gainers"):
                 "currency": "INR"
             })
             
-        return results[:5] # Return top 5
+        result = results[:5] # Return top 5
+        await market_cache.set(cache_key, result)
+        return result
     except Exception as e:
         print(f"NSE Movers Error: {e}")
         return []
 
 async def get_sector_data(sector: str):
+    cache_key = f"sector_{sector}"
+    cached_data = await market_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     # Predefined lists for requested sectors
     sectors = {
         "tech": ["AAPL", "MSFT", "NVDA", "ORCL", "ADBE"],
@@ -175,9 +230,15 @@ async def get_sector_data(sector: str):
         except Exception:
             continue
             
+    await market_cache.set(cache_key, results)
     return results
 
 async def get_indian_sector_data(sector: str):
+    cache_key = f"indian_sector_{sector}"
+    cached_data = await market_cache.get(cache_key)
+    if cached_data:
+        return cached_data
+
     # Predefined lists for Indian sectors
     sectors = {
         "tech": ["INFY.NS", "TCS.NS", "HCLTECH.NS", "TECHM.NS", "WIPRO.NS"],
@@ -203,4 +264,5 @@ async def get_indian_sector_data(sector: str):
         except Exception:
             continue
             
+    await market_cache.set(cache_key, results)
     return results

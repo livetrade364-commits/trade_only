@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { API_URL } from '../lib/utils';
+import { getMarketInfo } from '../lib/marketData';
 
 export interface StockQuote {
   symbol: string;
@@ -16,11 +17,12 @@ export interface StockQuote {
   open: number;
   previousClose: number;
   timestamp: number;
-  website?: string; // We might need to fetch this separately or mock it
+  website?: string;
   exchange?: string;
   type?: string;
   currency?: string;
   marketState?: string;
+  timezone?: string;
 }
 
 interface StockHistoryPoint {
@@ -55,6 +57,15 @@ export const useStockStore = create<StockState>((set) => ({
       
       const data = await response.json();
       
+      // Determine timezone: prefer backend data, fallback to static mapping
+      let timezone = data.timezone;
+      if (!timezone || timezone === 'UTC') {
+        const marketInfo = getMarketInfo(data.exchange, data.currency);
+        if (marketInfo) {
+          timezone = marketInfo.timezone;
+        }
+      }
+      
       // Transform backend data to match frontend interface
       const quote: StockQuote = {
         symbol: data.symbol,
@@ -75,6 +86,7 @@ export const useStockStore = create<StockState>((set) => ({
         exchange: data.exchange,
         type: data.type,
         marketState: data.market_state,
+        timezone: timezone,
         // Mocking website for logo demo purposes since yfinance might not return it in basic info
         // In a real app, we'd fetch profile data
         website: `www.${data.name.split(' ')[0].toLowerCase()}.com`.replace(',', '') 
