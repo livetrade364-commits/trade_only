@@ -5,13 +5,6 @@ from functools import lru_cache
 from datetime import datetime, timedelta
 import time
 import os
-import finnhub
-
-# Initialize Finnhub client
-finnhub_client = None
-api_key = os.getenv("FINNHUB_API_KEY")
-if api_key:
-    finnhub_client = finnhub.Client(api_key=api_key)
 
 # Simple in-memory cache with TTL
 class AsyncCache:
@@ -43,9 +36,6 @@ async def get_overview():
     # Common indices
     indices = ["^GSPC", "^DJI", "^IXIC", "^RUT"]
     data = []
-    
-    # Try Finnhub for indices if available? 
-    # Finnhub free tier doesn't always have index data, stick to yfinance for indices or use generic if blocked
     
     for symbol in indices:
         try:
@@ -151,38 +141,22 @@ async def get_movers(mover_type: str = "gainers"):
     
     movers = []
     
-    # Try Finnhub for quotes if available
-    if finnhub_client:
-        for symbol in symbols:
-            try:
-                quote = await asyncio.to_thread(finnhub_client.quote, symbol)
-                if quote and quote['c'] != 0:
-                    movers.append({
-                        "symbol": symbol,
-                        "name": symbol, # Finnhub quote doesn't give name, keep simple
-                        "price": quote['c'],
-                        "change": quote['d'],
-                        "percent_change": quote['dp']
-                    })
-            except Exception:
-                continue
-    else:
-        # Fallback to Yahoo
-        for symbol in symbols:
-            try:
-                ticker = await asyncio.to_thread(yf.Ticker, symbol)
-                info = await asyncio.to_thread(lambda: ticker.info)
-                change_percent = info.get("regularMarketChangePercent", 0) * 100
-                
-                movers.append({
-                    "symbol": symbol,
-                    "name": info.get("shortName", symbol),
-                    "price": info.get("currentPrice", 0),
-                    "change": info.get("regularMarketChange", 0),
-                    "percent_change": change_percent
-                })
-            except Exception:
-                continue
+    # Fallback to Yahoo
+    for symbol in symbols:
+        try:
+            ticker = await asyncio.to_thread(yf.Ticker, symbol)
+            info = await asyncio.to_thread(lambda: ticker.info)
+            change_percent = info.get("regularMarketChangePercent", 0) * 100
+            
+            movers.append({
+                "symbol": symbol,
+                "name": info.get("shortName", symbol),
+                "price": info.get("currentPrice", 0),
+                "change": info.get("regularMarketChange", 0),
+                "percent_change": change_percent
+            })
+        except Exception:
+            continue
     
     # Filter and sort based on type
     if mover_type == "gainers":
@@ -245,34 +219,19 @@ async def get_sector_data(sector: str):
     symbols = sectors.get(sector, [])
     results = []
     
-    if finnhub_client:
-        for symbol in symbols:
-            try:
-                quote = await asyncio.to_thread(finnhub_client.quote, symbol)
-                if quote and quote['c'] != 0:
-                    results.append({
-                        "symbol": symbol,
-                        "name": symbol, # Simple fallback
-                        "price": quote['c'],
-                        "change": quote['d'],
-                        "percent_change": quote['dp']
-                    })
-            except Exception:
-                continue
-    else:
-        for symbol in symbols:
-            try:
-                ticker = await asyncio.to_thread(yf.Ticker, symbol)
-                info = await asyncio.to_thread(lambda: ticker.info)
-                results.append({
-                    "symbol": symbol,
-                    "name": info.get("shortName", symbol),
-                    "price": info.get("currentPrice", 0),
-                    "change": info.get("regularMarketChange", 0),
-                    "percent_change": info.get("regularMarketChangePercent", 0) * 100
-                })
-            except Exception:
-                continue
+    for symbol in symbols:
+        try:
+            ticker = await asyncio.to_thread(yf.Ticker, symbol)
+            info = await asyncio.to_thread(lambda: ticker.info)
+            results.append({
+                "symbol": symbol,
+                "name": info.get("shortName", symbol),
+                "price": info.get("currentPrice", 0),
+                "change": info.get("regularMarketChange", 0),
+                "percent_change": info.get("regularMarketChangePercent", 0) * 100
+            })
+        except Exception:
+            continue
             
     await market_cache.set(cache_key, results)
     return results
