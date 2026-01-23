@@ -129,8 +129,8 @@ async def get_indian_overview_fallback():
             ticker = await asyncio.to_thread(yf.Ticker, symbol)
             info = await asyncio.to_thread(lambda: ticker.info)
             data.append({
-                "symbol": "SENSEX" if symbol == "^BSESN" else symbol, # Normalize Sensex name
-                "name": info.get("shortName", symbol),
+                "symbol": "SENSEX" if symbol == "^BSESN" else symbol.replace("^", "").replace(".NS", ""), # Normalize names
+                "name": info.get("shortName", symbol).replace("^", "").replace(".NS", ""),
                 "price": info.get("regularMarketPrice", 0),
                 "change": info.get("regularMarketChange", 0),
                 "percent_change": info.get("regularMarketChangePercent", 0),
@@ -262,7 +262,7 @@ async def get_indian_movers_fallback(mover_type: str = "gainers"):
                     pass
 
                 movers.append({
-                    "symbol": symbol,
+                    "symbol": symbol.replace(".NS", ""), # Remove .NS extension
                     "name": name,
                     "price": price,
                     "change": change,
@@ -275,7 +275,7 @@ async def get_indian_movers_fallback(mover_type: str = "gainers"):
                 change_percent = info.get("regularMarketChangePercent", 0) * 100
                 
                 movers.append({
-                    "symbol": symbol,
+                    "symbol": symbol.replace(".NS", ""), # Remove .NS extension
                     "name": info.get("shortName", symbol),
                     "price": info.get("currentPrice", 0),
                     "change": info.get("regularMarketChange", 0),
@@ -351,7 +351,7 @@ async def get_indian_sector_data(sector: str):
             ticker = await asyncio.to_thread(yf.Ticker, symbol)
             info = await asyncio.to_thread(lambda: ticker.info)
             results.append({
-                "symbol": symbol,
+                "symbol": symbol.replace(".NS", ""), # Remove .NS extension
                 "name": info.get("shortName", symbol),
                 "price": info.get("currentPrice", 0),
                 "change": info.get("regularMarketChange", 0),
