@@ -9,7 +9,8 @@ origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://lozzbytech.onrender.com",
-    "https://trade-only.onrender.com"
+    "https://trade-only.onrender.com",
+    "https://trade-x-vsv0.onrender.com",
 ]
 
 app.add_middleware(
