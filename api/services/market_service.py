@@ -201,7 +201,45 @@ async def get_indian_movers(mover_type: str = "gainers"):
         return result
     except Exception as e:
         print(f"NSE Movers Error: {e}")
-        return []
+        return await get_indian_movers_fallback(mover_type)
+
+async def get_indian_movers_fallback(mover_type: str = "gainers"):
+    # Fallback using a predefined list of popular Indian stocks (Nifty 50 components)
+    symbols = [
+        "RELIANCE.NS", "TCS.NS", "HDFCBANK.NS", "ICICIBANK.NS", "INFY.NS", 
+        "HINDUNILVR.NS", "ITC.NS", "SBIN.NS", "BHARTIARTL.NS", "KOTAKBANK.NS",
+        "LT.NS", "AXISBANK.NS", "TATAMOTORS.NS", "MARUTI.NS", "SUNPHARMA.NS",
+        "BAJFINANCE.NS", "ASIANPAINT.NS", "HCLTECH.NS", "TITAN.NS", "M&M.NS"
+    ]
+    
+    movers = []
+    
+    for symbol in symbols:
+        try:
+            ticker = await asyncio.to_thread(yf.Ticker, symbol)
+            info = await asyncio.to_thread(lambda: ticker.info)
+            change_percent = info.get("regularMarketChangePercent", 0) * 100
+            
+            movers.append({
+                "symbol": symbol,
+                "name": info.get("shortName", symbol),
+                "price": info.get("currentPrice", 0),
+                "change": info.get("regularMarketChange", 0),
+                "percent_change": change_percent,
+                "currency": "INR"
+            })
+        except Exception:
+            continue
+    
+    # Filter and sort based on type
+    if mover_type == "gainers":
+        filtered = [m for m in movers if m["percent_change"] > 0]
+        filtered.sort(key=lambda x: x["percent_change"], reverse=True)
+    else: # losers
+        filtered = [m for m in movers if m["percent_change"] < 0]
+        filtered.sort(key=lambda x: x["percent_change"]) # Most negative first
+        
+    return filtered[:5]
 
 async def get_sector_data(sector: str):
     cache_key = f"sector_{sector}"
