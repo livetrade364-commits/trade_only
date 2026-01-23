@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import { ArrowUp, ArrowDown, Trash2, Loader2 } from 'lucide-react';
 import { getLogoUrl } from '../lib/logo';
 import { API_URL } from '../lib/utils';
+import { formatCurrency } from '../lib/currency';
 
 interface WatchlistItem {
   symbol: string;
@@ -12,6 +13,7 @@ interface WatchlistItem {
   change: number;
   changePercent: number;
   name: string;
+  currency: string;
 }
 
 const StockLogo = ({ symbol, name }: { symbol: string, name: string }) => {
@@ -63,6 +65,7 @@ export default function Watchlist() {
               price: quote.price,
               change: quote.change,
               changePercent: quote.percent_change,
+              currency: quote.currency || 'USD',
             };
           } catch {
             return null;
@@ -117,7 +120,7 @@ export default function Watchlist() {
                   <Link to={`/stock/${item.symbol}`} className="flex-1 flex items-center gap-4">
                     <StockLogo symbol={item.symbol} name={item.name} />
                     <div className="w-16">
-                      <span className="font-bold text-gray-900">{item.symbol}</span>
+                      <span className="font-bold text-gray-900">{item.symbol.replace(/\.NS$/, '')}</span>
                     </div>
                     <div className="flex-1 px-4 hidden sm:block">
                       <div className="text-sm text-gray-500 truncate">{item.name}</div>
@@ -126,7 +129,7 @@ export default function Watchlist() {
                   
                   <div className="flex items-center justify-between sm:justify-end gap-4 w-full sm:w-auto mt-2 sm:mt-0 pl-14 sm:pl-0">
                     <div className="text-left sm:text-right w-32">
-                      <div className="font-mono font-medium">${item.price.toFixed(2)}</div>
+                      <div className="font-mono font-medium">{formatCurrency(item.price, item.currency)}</div>
                       <div className="text-xs text-gray-500 sm:hidden">{item.name}</div>
                     </div>
                     <div className={`text-right w-24 flex justify-end ${item.change >= 0 ? 'text-emerald-600' : 'text-red-600'}`}>

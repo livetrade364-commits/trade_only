@@ -26,4 +26,4 @@ app.include_router(market.router, prefix="/api/market", tags=["market"])
 
 @app.get("/")
 async def root():
-    return {"message": "Welcome to Trade Only API"}
+    return {"message": "Welcome to Tradex API"}

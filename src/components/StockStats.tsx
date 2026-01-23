@@ -1,8 +1,10 @@
 import React from 'react';
 import { DollarSign, BarChart2, TrendingUp, Activity } from 'lucide-react';
+import { formatCurrency } from '../lib/currency';
+import { StockQuote } from '../store/useStockStore';
 
 interface StockStatsProps {
-  quote: any;
+  quote: StockQuote;
 }
 
 const StockStats: React.FC<StockStatsProps> = ({ quote }) => {
@@ -20,7 +22,7 @@ const StockStats: React.FC<StockStatsProps> = ({ quote }) => {
             Market Cap
           </div>
           <div className="font-bold text-gray-900">
-            ${(quote.marketCap / 1e9).toFixed(2)}B
+            {formatCurrency(quote.marketCap, quote.currency)}
           </div>
         </div>
 
@@ -50,7 +52,7 @@ const StockStats: React.FC<StockStatsProps> = ({ quote }) => {
             EPS
           </div>
           <div className="font-bold text-gray-900">
-            {quote.eps ? `$${quote.eps.toFixed(2)}` : 'N/A'}
+            {quote.eps ? formatCurrency(quote.eps, quote.currency) : 'N/A'}
           </div>
         </div>
       </div>

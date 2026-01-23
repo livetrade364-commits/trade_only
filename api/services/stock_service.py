@@ -29,17 +29,33 @@ async def search_stocks(query: str):
         return []
 
 async def get_quote(symbol: str):
+    # Handle NIFTY indices mapping from nselib format to yfinance format
+    # "NIFTY 50" -> "^NSEI"
+    # "NIFTY BANK" -> "^NSEBANK"
+    # "NIFTY IT" -> "^CNXIT"
+    # "NIFTY NEXT 50" -> "^NSMIDCP" (approximate, or "^NSEMDCP50") - best match usually ^NSEI for 50
+    
+    yfinance_symbol = symbol
+    if symbol == "NIFTY 50":
+        yfinance_symbol = "^NSEI"
+    elif symbol == "NIFTY BANK":
+        yfinance_symbol = "^NSEBANK"
+    elif symbol == "NIFTY IT":
+        yfinance_symbol = "^CNXIT"
+    elif symbol == "NIFTY NEXT 50":
+        yfinance_symbol = "^NSMIDCP" # or try to find better match if needed
+    
     # Run synchronous yfinance call in a separate thread
-    ticker = await asyncio.to_thread(yf.Ticker, symbol)
+    ticker = await asyncio.to_thread(yf.Ticker, yfinance_symbol)
     info = await asyncio.to_thread(lambda: ticker.info)
     
     # Extract relevant data (handling potential missing keys gracefully)
     return {
-        "symbol": symbol,
+        "symbol": symbol, # Return original requested symbol name for UI consistency
         "name": info.get("shortName", symbol),
         "price": info.get("currentPrice", info.get("regularMarketPrice", 0)),
         "change": info.get("regularMarketChange", 0),
-        "percent_change": info.get("regularMarketChangePercent", 0),
+        "percent_change": info.get("regularMarketChangePercent", 0) * 100,
         "volume": info.get("volume", 0),
         "market_cap": info.get("marketCap", 0),
         "pe_ratio": info.get("trailingPE", None),
@@ -48,10 +64,28 @@ async def get_quote(symbol: str):
         "day_low": info.get("dayLow", 0),
         "open": info.get("open", 0),
         "previous_close": info.get("previousClose", 0),
+        "currency": info.get("currency", "USD"),
+        "exchange": info.get("exchange", "UNKNOWN"),
+        "timezone": info.get("exchangeTimezoneName", "UTC"),
+        "type": info.get("quoteType", "EQUITY"),
+        "market_state": info.get("marketState", "CLOSED"),
     }
 
 async def get_history(symbol: str, period: str, interval: str):
-    ticker = await asyncio.to_thread(yf.Ticker, symbol)
+    # Handle NIFTY indices mapping
+    yfinance_symbol = symbol
+    if symbol == "NIFTY 50":
+        yfinance_symbol = "^NSEI"
+    elif symbol == "NIFTY BANK":
+        yfinance_symbol = "^NSEBANK"
+    elif symbol == "NIFTY IT":
+        yfinance_symbol = "^CNXIT"
+    elif symbol == "NIFTY NEXT 50":
+        yfinance_symbol = "^NSMIDCP"
+    elif symbol == "SENSEX":
+        yfinance_symbol = "^BSESN"
+
+    ticker = await asyncio.to_thread(yf.Ticker, yfinance_symbol)
     history = await asyncio.to_thread(ticker.history, period=period, interval=interval)
     
     # Convert dataframe to list of dicts

@@ -2,10 +2,11 @@ import React from 'react';
 import { ArrowUp, ArrowDown, Heart } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { getLogoUrl } from '../lib/logo';
-import { useAuthStore } from '../store/useAuthStore';
+import { formatCurrency } from '../lib/currency';
+import { StockQuote } from '../store/useStockStore';
 
 interface StockHeaderProps {
-  quote: any;
+  quote: StockQuote;
   toggleWishlist: () => void;
   isWishlisted: boolean;
 }
@@ -36,7 +37,7 @@ const StockHeader: React.FC<StockHeaderProps> = ({ quote, toggleWishlist, isWish
           <div className="flex-1">
             <div className="flex items-center gap-3">
               <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">
-                {quote.symbol}
+                {quote.symbol.replace(/\.NS$/, '')}
               </h1>
               <button 
                 onClick={toggleWishlist}
@@ -52,10 +53,13 @@ const StockHeader: React.FC<StockHeaderProps> = ({ quote, toggleWishlist, isWish
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                Stock
+                {quote.type || 'Stock'}
               </span>
               <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                {quote.exchange || 'US Market'}
+                {quote.exchange || 'Market'}
+              </span>
+              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                {quote.currency === 'INR' ? '🇮🇳 India' : quote.currency === 'USD' ? '🇺🇸 USA' : quote.currency || 'Global'}
               </span>
             </div>
           </div>
@@ -64,7 +68,7 @@ const StockHeader: React.FC<StockHeaderProps> = ({ quote, toggleWishlist, isWish
         <div className="flex flex-col items-start md:items-end">
           <div className="flex items-baseline gap-2">
             <span className="text-4xl md:text-5xl font-bold text-gray-900 tracking-tight">
-              ${quote.price.toFixed(2)}
+              {formatCurrency(quote.price, quote.currency)}
             </span>
           </div>
           <div className={cn(
@@ -72,7 +76,7 @@ const StockHeader: React.FC<StockHeaderProps> = ({ quote, toggleWishlist, isWish
             isPositive ? "bg-green-50 text-green-700" : "bg-red-50 text-red-700"
           )}>
             {isPositive ? <ArrowUp className="h-4 w-4 mr-1.5" /> : <ArrowDown className="h-4 w-4 mr-1.5" />}
-            <span className="text-lg">${Math.abs(quote.change).toFixed(2)}</span>
+            <span className="text-lg">{formatCurrency(Math.abs(quote.change), quote.currency)}</span>
             <span className="mx-1.5 opacity-30">|</span>
             <span className="text-lg">{Math.abs(quote.changePercent).toFixed(2)}%</span>
           </div>

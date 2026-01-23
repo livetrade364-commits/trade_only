@@ -57,7 +57,7 @@ export default function Search() {
       }
       const data = await response.json();
       setResults(data);
-    } catch (err) {
+    } catch {
       setError('Failed to fetch search results');
       setResults([]);
     } finally {

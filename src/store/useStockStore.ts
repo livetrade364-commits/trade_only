@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { API_URL } from '../lib/utils';
 
-interface StockQuote {
+export interface StockQuote {
   symbol: string;
   name: string;
   price: number;
@@ -18,6 +18,9 @@ interface StockQuote {
   timestamp: number;
   website?: string; // We might need to fetch this separately or mock it
   exchange?: string;
+  type?: string;
+  currency?: string;
+  marketState?: string;
 }
 
 interface StockHistoryPoint {
@@ -68,6 +71,10 @@ export const useStockStore = create<StockState>((set) => ({
         open: data.open,
         previousClose: data.previous_close,
         timestamp: Date.now(),
+        currency: data.currency || 'USD',
+        exchange: data.exchange,
+        type: data.type,
+        marketState: data.market_state,
         // Mocking website for logo demo purposes since yfinance might not return it in basic info
         // In a real app, we'd fetch profile data
         website: `www.${data.name.split(' ')[0].toLowerCase()}.com`.replace(',', '') 

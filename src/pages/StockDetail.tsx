@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/useAuthStore';
 import Layout from '../components/Layout';
 import StockChart from '../components/StockChart';
 import StockHeader from '../components/StockHeader';
+import MarketStatusCard from '../components/MarketStatusCard';
 import StockStats from '../components/StockStats';
 import { Loader2, Activity } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -88,6 +89,12 @@ const StockDetail: React.FC = () => {
           toggleWishlist={toggleWishlist} 
           isWishlisted={isWishlisted} 
         />
+        
+        <MarketStatusCard 
+          marketState={quote.marketState || 'CLOSED'} 
+          exchange={quote.exchange}
+          timezone={quote.timezone}
+        />
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
@@ -116,7 +123,7 @@ const StockDetail: React.FC = () => {
               </div>
               <div className="h-[400px] w-full">
                 {history ? (
-                  <StockChart data={history} />
+                  <StockChart data={history} currency={quote.currency} />
                 ) : (
                   <div className="h-full w-full flex items-center justify-center bg-gray-50/50 rounded-xl">
                     <Loader2 className="h-8 w-8 animate-spin text-gray-400" />

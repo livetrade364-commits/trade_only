@@ -177,9 +177,9 @@ export default function Home() {
 
           <div className="lg:col-span-1">
              <div className="bg-emerald-50 rounded-2xl p-8 border border-emerald-100 h-full">
-              <h2 className="text-xl font-bold text-emerald-900 mb-2">Welcome to Trade Only</h2>
+              <h2 className="text-xl font-bold text-emerald-900 mb-2">Welcome to Tradex</h2>
               <p className="text-emerald-700 mb-6">
-                Your financial dashboard is ready. Search for stocks using the search bar above, or check your portfolio and watchlist in the sidebar.
+                Search for stocks using the search bar above, or check your portfolio and watchlist in the sidebar.
               </p>
               <Link to="/search" className="block w-full py-3 px-4 bg-emerald-600 text-white text-center font-medium rounded-xl hover:bg-emerald-700 transition-colors shadow-sm shadow-emerald-200">
                 Find Stocks

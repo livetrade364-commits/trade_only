@@ -6,15 +6,15 @@ export const getLogoUrl = (website?: string, symbol?: string) => {
     try {
       const domain = new URL(website.startsWith('http') ? website : `https://${website}`).hostname;
       return `${LOGO_BASE_URL}/${domain}?token=${PUBLISHABLE_KEY}`;
-    } catch (e) {
+    } catch {
       // Fallback
     }
   }
   
   // Enhanced fallback logic: Try to construct domain from symbol/name if website is missing
   if (symbol) {
-    // Basic heuristic for common tickers
-    const cleanSymbol = symbol.replace('^', '').toLowerCase();
+    // Remove Indian stock suffixes like .NS, .BO, .ns, .bo for cleaner domain guessing
+    const cleanSymbol = symbol.replace(/\.(NS|BO|ns|bo)$/, '').replace('^', '').toLowerCase();
     return `${LOGO_BASE_URL}/${cleanSymbol}.com?token=${PUBLISHABLE_KEY}`;
   }
   

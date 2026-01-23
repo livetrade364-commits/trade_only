@@ -14,11 +14,21 @@ interface StockChartProps {
     date: string;
     close: number;
   }[];
+  currency?: string;
 }
 
-const StockChart: React.FC<StockChartProps> = ({ data }) => {
+const StockChart: React.FC<StockChartProps> = ({ data, currency = 'USD' }) => {
   const isPositive = data.length > 0 && data[data.length - 1].close >= data[0].close;
   const color = isPositive ? '#10B981' : '#EF4444'; // emerald-500 or red-500
+
+  const formatPrice = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(value);
+  };
 
   return (
     <div style={{ width: '100%', height: '100%' }}>
@@ -43,7 +53,7 @@ const StockChart: React.FC<StockChartProps> = ({ data }) => {
             tick={{ fontSize: 12, fill: '#9CA3AF' }}
             axisLine={false}
             tickLine={false}
-            tickFormatter={(value) => `$${value.toFixed(2)}`}
+            tickFormatter={formatPrice}
           />
           <Tooltip 
             contentStyle={{ 
@@ -53,7 +63,7 @@ const StockChart: React.FC<StockChartProps> = ({ data }) => {
               boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
             }}
             itemStyle={{ color: '#1F2937', fontWeight: 600 }}
-            formatter={(value: number) => [`$${value.toFixed(2)}`, 'Price']}
+            formatter={(value: number) => [formatPrice(value), 'Price']}
             labelStyle={{ color: '#6B7280', marginBottom: '0.25rem' }}
             labelFormatter={(label) => new Date(label).toLocaleDateString()}
           />

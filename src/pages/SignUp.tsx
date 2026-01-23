@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { Radar, Mail, Lock, User, Loader2 } from 'lucide-react';
+import { Mail, Lock, Loader2, User } from 'lucide-react';
 
 export default function SignUp() {
   const navigate = useNavigate();
@@ -31,8 +31,9 @@ export default function SignUp() {
       
       // Auto login or redirect to dashboard
       navigate('/');
-    } catch (err: any) {
-      setError(err.message || 'Failed to sign up');
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Failed to sign up';
+      setError(message);
     } finally {
       setLoading(false);
     }
@@ -42,9 +43,11 @@ export default function SignUp() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
       <div className="sm:mx-auto sm:w-full sm:max-w-md">
         <div className="flex justify-center">
-          <div className="h-12 w-12 rounded-full bg-gradient-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center text-white">
-            <Radar size={24} />
-          </div>
+          <img 
+            src="/tradex-logo.png" 
+            alt="Tradex" 
+            className="h-16 w-auto object-contain" 
+          />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Create your account

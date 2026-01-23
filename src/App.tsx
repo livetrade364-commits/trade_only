@@ -4,6 +4,7 @@ import Home from "@/pages/Home";
 import Search from "@/pages/Search";
 import StockDetail from "@/pages/StockDetail";
 import MarketOverview from "@/pages/MarketOverview";
+import IndianMarket from "@/pages/IndianMarket";
 import Login from "@/pages/Login";
 import SignUp from "@/pages/SignUp";
 import Watchlist from "@/pages/Watchlist";
@@ -21,6 +22,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/market-overview" element={<MarketOverview />} />
+        <Route path="/indian-market" element={<IndianMarket />} />
         <Route path="/search" element={<Search />} />
         <Route path="/stock/:symbol" element={<StockDetail />} />
         <Route path="/watchlist" element={<Watchlist />} />

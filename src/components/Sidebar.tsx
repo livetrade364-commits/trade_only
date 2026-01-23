@@ -9,7 +9,6 @@ import {
   LogOut, 
   ChevronDown, 
   ChevronRight,
-  Radar,
   X
 } from 'lucide-react';
 import { useAuthStore } from '../store/useAuthStore';
@@ -47,15 +46,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     `}>
       {/* Logo */}
       <div className="h-16 lg:h-20 flex items-center justify-between px-6 border-b border-gray-50">
-        <Link to="/" className="flex items-center gap-3" onClick={handleLinkClick}>
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-emerald-400 to-emerald-600 flex items-center justify-center text-white">
-            <Radar size={18} />
-          </div>
-          <span className="text-xl font-bold text-gray-900 tracking-tight">Lozzby Tech</span>
+        <Link to="/" className="flex items-center justify-center w-full" onClick={handleLinkClick}>
+          <img 
+            src="/tradex-logo.png" 
+            alt="Tradex" 
+            className="h-14 w-auto object-contain" 
+          />
         </Link>
         <button 
           onClick={onClose}
-          className="lg:hidden p-2 -mr-2 text-gray-400 hover:text-gray-600"
+          className="lg:hidden p-2 absolute right-4 text-gray-400 hover:text-gray-600"
         >
           <X size={20} />
         </button>
@@ -101,6 +101,17 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
                 }`}
               >
                 Market Overview
+              </Link>
+              <Link
+                to="/indian-market"
+                onClick={handleLinkClick}
+                className={`block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                  isActive('/indian-market')
+                    ? 'text-emerald-700 bg-emerald-50'
+                    : 'text-gray-500 hover:text-gray-900'
+                }`}
+              >
+                Indian Market
               </Link>
             </div>
           )}
@@ -149,6 +160,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       {/* Logout */}
       <div className="p-4 border-t border-gray-100">
+        <div className="px-3 pb-3 text-xs font-semibold text-gray-400 text-center">
+          Tradex by 2Ce Capitals
+        </div>
         <button
           onClick={handleSignOut}
           className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"

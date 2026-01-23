@@ -13,8 +13,8 @@ interface AuthState {
   wishlist: string[];
   isLoading: boolean;
   initialize: () => Promise<void>;
-  signIn: (email: string) => Promise<{ error: any }>;
-  verifyOtp: (email: string, token: string) => Promise<{ error: any }>;
+  signIn: (email: string) => Promise<{ error: Error | null }>;
+  verifyOtp: (email: string, token: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
   addToWishlist: (symbol: string) => Promise<void>;
   removeFromWishlist: (symbol: string) => Promise<void>;
@@ -97,11 +97,13 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     }
   },
 
-  signIn: async (email: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  signIn: async (_email: string) => {
     return { error: null };
   },
 
-  verifyOtp: async (email, token) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  verifyOtp: async (_email, _token) => {
     return { error: null };
   },
 
