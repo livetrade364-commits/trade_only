@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useEffect, Suspense, lazy } from "react";
 import { useAuthStore } from "@/store/useAuthStore";
 import { Loader2 } from "lucide-react";
@@ -20,6 +20,26 @@ const PageLoader = () => (
   </div>
 );
 
+// Protected Route Component
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuthStore();
+  
+  if (loading) return <PageLoader />;
+  if (!user) return <Navigate to="/login" replace />;
+  
+  return <>{children}</>;
+};
+
+// Public Route (redirects to home if already logged in)
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user, loading } = useAuthStore();
+  
+  if (loading) return <PageLoader />;
+  if (user) return <Navigate to="/" replace />;
+  
+  return <>{children}</>;
+};
+
 export default function App() {
   const { initialize } = useAuthStore();
 
@@ -31,15 +51,15 @@ export default function App() {
     <Router>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/market-overview" element={<MarketOverview />} />
-          <Route path="/indian-market" element={<IndianMarket />} />
-          <Route path="/search" element={<Search />} />
-          <Route path="/stock/:symbol" element={<StockDetail />} />
-          <Route path="/watchlist" element={<Watchlist />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<SignUp />} />
-          <Route path="/other" element={<div className="text-center text-xl">Other Page - Coming Soon</div>} />
+          <Route path="/" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+          <Route path="/market-overview" element={<ProtectedRoute><MarketOverview /></ProtectedRoute>} />
+          <Route path="/indian-market" element={<ProtectedRoute><IndianMarket /></ProtectedRoute>} />
+          <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+          <Route path="/stock/:symbol" element={<ProtectedRoute><StockDetail /></ProtectedRoute>} />
+          <Route path="/watchlist" element={<ProtectedRoute><Watchlist /></ProtectedRoute>} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/signup" element={<PublicRoute><SignUp /></PublicRoute>} />
+          <Route path="/other" element={<ProtectedRoute><div className="text-center text-xl">Other Page - Coming Soon</div></ProtectedRoute>} />
         </Routes>
       </Suspense>
     </Router>

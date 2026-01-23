@@ -42,7 +42,7 @@ export default function Login() {
           />
         </div>
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to Trade Only
+          Sign in to TradeX
         </h2>
       </div>
 
