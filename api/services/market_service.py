@@ -196,6 +196,10 @@ async def get_indian_movers(mover_type: str = "gainers"):
                 "currency": "INR"
             })
             
+        if not results:
+             # Trigger fallback if nselib returns empty list but no exception
+             return await get_indian_movers_fallback(mover_type)
+
         result = results[:5] # Return top 5
         await market_cache.set(cache_key, result)
         return result
@@ -217,18 +221,48 @@ async def get_indian_movers_fallback(mover_type: str = "gainers"):
     for symbol in symbols:
         try:
             ticker = await asyncio.to_thread(yf.Ticker, symbol)
-            info = await asyncio.to_thread(lambda: ticker.info)
-            change_percent = info.get("regularMarketChangePercent", 0) * 100
-            
-            movers.append({
-                "symbol": symbol,
-                "name": info.get("shortName", symbol),
-                "price": info.get("currentPrice", 0),
-                "change": info.get("regularMarketChange", 0),
-                "percent_change": change_percent,
-                "currency": "INR"
-            })
-        except Exception:
+            # Use fast_info if available, it's generally more robust and lighter than .info
+            # fast_info provides: last_price, previous_close, etc.
+            try:
+                fast_info = await asyncio.to_thread(lambda: ticker.fast_info)
+                price = fast_info.last_price
+                prev_close = fast_info.previous_close
+                change = price - prev_close
+                percent_change = (change / prev_close) * 100
+                
+                # Fetch name from info if possible, otherwise use symbol
+                # We do this in a separate try/except so if info fails we still have price data
+                name = symbol
+                try:
+                    info = await asyncio.to_thread(lambda: ticker.info)
+                    name = info.get("shortName", symbol)
+                except:
+                    pass
+
+                movers.append({
+                    "symbol": symbol,
+                    "name": name,
+                    "price": price,
+                    "change": change,
+                    "percent_change": percent_change,
+                    "currency": "INR"
+                })
+            except Exception:
+                # If fast_info fails, try regular info
+                info = await asyncio.to_thread(lambda: ticker.info)
+                change_percent = info.get("regularMarketChangePercent", 0) * 100
+                
+                movers.append({
+                    "symbol": symbol,
+                    "name": info.get("shortName", symbol),
+                    "price": info.get("currentPrice", 0),
+                    "change": info.get("regularMarketChange", 0),
+                    "percent_change": change_percent,
+                    "currency": "INR"
+                })
+
+        except Exception as e:
+            # print(f"Fallback error for {symbol}: {e}")
             continue
     
     # Filter and sort based on type
