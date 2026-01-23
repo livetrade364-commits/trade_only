@@ -12,6 +12,7 @@ interface AuthState {
   isAuthenticated: boolean;
   wishlist: string[];
   isLoading: boolean;
+  loading: boolean; // Alias for isLoading to fix compatibility
   initialize: () => Promise<void>;
   signIn: (email: string) => Promise<{ error: Error | null }>;
   verifyOtp: (email: string, token: string) => Promise<{ error: Error | null }>;
@@ -25,6 +26,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   isAuthenticated: false,
   wishlist: [],
   isLoading: true,
+  loading: true,
 
   initialize: async () => {
     try {
@@ -93,7 +95,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       // Ensure we don't leave the app in a weird loading state
       set({ user: null, isAuthenticated: false });
     } finally {
-      set({ isLoading: false });
+      set({ isLoading: false, loading: false });
     }
   },
 
