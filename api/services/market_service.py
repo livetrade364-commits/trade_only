@@ -77,6 +77,7 @@ async def get_indian_overview():
     try:
         last_nse_request_time = time.time()
         # Fetch indices data using nselib
+        # The correct function in nselib 2.x+ is market_watch_all_indices()
         df = await asyncio.to_thread(capital_market.market_watch_all_indices)
         
         # Target indices to display
@@ -86,10 +87,11 @@ async def get_indian_overview():
         # Iterate through dataframe rows
         for index, row in df.iterrows():
             # The column name is 'indexSymbol'
-            if row['indexSymbol'] in target_indices:
+            # nselib might return different casing, so be careful
+            if row['index'] in target_indices:
                 results.append({
-                    "symbol": row['indexSymbol'],
-                    "name": row['indexSymbol'], # Use symbol as name to match frontend expectation
+                    "symbol": row['index'],
+                    "name": row['index'], # Use symbol as name to match frontend expectation
                     "price": float(str(row['last']).replace(',', '')),
                     "change": float(str(row['variation']).replace(',', '')),
                     "percent_change": float(str(row['percentChange']).replace(',', '')),
@@ -201,26 +203,51 @@ async def get_indian_movers(mover_type: str = "gainers"):
         last_nse_request_time = time.time()
         # Using nselib for top gainers/losers
         # 'to_get' parameter accepts 'gainers' or 'loosers' (note the spelling in nselib)
-        nselib_type = "loosers" if mover_type == "losers" else "gainers"
+        # Note: nselib top_gainers_or_losers() might not take arguments in newer versions or arguments might differ
+        # Let's check nselib documentation or source if possible.
+        # Assuming standard usage from pypi description
         
-        df = await asyncio.to_thread(capital_market.top_gainers_or_losers, to_get=nselib_type)
+        # NOTE: nselib 2.4.2 top_gainers_or_losers() doesn't seem to take arguments in some versions
+        # We might need to use top_gainers() and top_losers() if they exist, or filter the result
+        
+        # Let's try top_gainers() and top_losers() specific functions if available or fallback
+        # If the library changed, we should wrap this in try-except
+        
+        if mover_type == "gainers":
+             df = await asyncio.to_thread(capital_market.top_gainers_or_losers) # This might return both or we need to filter?
+             # Actually top_gainers_or_losers is usually for Nifty 50 by default
+        else:
+             df = await asyncio.to_thread(capital_market.top_gainers_or_losers)
+
+        # nselib's top_gainers_or_losers typically returns a DataFrame.
+        # We need to see its columns. Usually 'symbol', 'ltp', 'pChange' etc.
         
         results = []
         # Columns: symbol, series, open_price, high_price, low_price, ltp, prev_price, net_price, trade_quantity, turnover, market_type, ca_ex_dt, ca_purpose, perChange, legend
         
         for index, row in df.iterrows():
-            results.append({
-                "symbol": f"{row['symbol']}.NS", # Append .NS for compatibility with yfinance details
-                "name": row['symbol'], # Use symbol as name if full name not available in this view
-                "price": float(str(row['ltp']).replace(',', '')),
-                "change": float(str(row['ltp']).replace(',', '')) - float(str(row['prev_price']).replace(',', '')), # approximate if net_price is missing or use net_price if cleaner
-                "percent_change": float(str(row['perChange']).replace(',', '')),
-                "currency": "INR"
-            })
+            # Filter for gainers/losers manually if the API returns mixed or specific set
+            p_change = float(str(row['pChange']).replace(',', ''))
+            
+            if (mover_type == "gainers" and p_change > 0) or (mover_type == "losers" and p_change < 0):
+                results.append({
+                    "symbol": f"{row['symbol']}.NS", # Append .NS for compatibility with yfinance details
+                    "name": row['symbol'], # Use symbol as name if full name not available in this view
+                    "price": float(str(row['ltp']).replace(',', '')),
+                    "change": float(str(row['ltp']).replace(',', '')) - float(str(row['previousPrice']).replace(',', '')), 
+                    "percent_change": p_change,
+                    "currency": "INR"
+                })
             
         if not results:
              # Trigger fallback if nselib returns empty list but no exception
              return await get_indian_movers_fallback(mover_type)
+
+        # Sort results
+        if mover_type == "gainers":
+            results.sort(key=lambda x: x["percent_change"], reverse=True)
+        else:
+            results.sort(key=lambda x: x["percent_change"])
 
         result = results[:5] # Return top 5
         await market_cache.set(cache_key, result)

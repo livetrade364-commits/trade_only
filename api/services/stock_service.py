@@ -127,9 +127,9 @@ async def get_nselib_quote(symbol: str):
         # nselib expects symbol without .NS extension
         clean_symbol = symbol.replace(".NS", "")
         
-        # Use price_volume_and_delivery_position which is lighter than equity_list
+        # Use price_volume_and_deliverable_position_data which is lighter than equity_list
         # Note: nselib can be slow as it scrapes the NSE site
-        data = await asyncio.to_thread(capital_market.price_volume_and_delivery_position, mode='new', symbol=clean_symbol)
+        data = await asyncio.to_thread(capital_market.price_volume_and_deliverable_position_data, symbol=clean_symbol, period='1M')
         
         if data is None or data.empty:
              return None
@@ -138,8 +138,8 @@ async def get_nselib_quote(symbol: str):
         row = data.iloc[-1]
         
         # Parse numeric fields
-        price = float(str(row['lastPrice']).replace(',', ''))
-        prev_close = float(str(row['previousClose']).replace(',', ''))
+        price = float(str(row['LastPrice']).replace(',', ''))
+        prev_close = float(str(row['PrevClose']).replace(',', ''))
         change = price - prev_close
         p_change = (change / prev_close) * 100
         
@@ -149,13 +149,13 @@ async def get_nselib_quote(symbol: str):
             "price": price,
             "change": change,
             "percent_change": p_change,
-            "volume": int(str(row['quantityTraded']).replace(',', '')),
+            "volume": int(str(row['TotalTradedQuantity']).replace(',', '')),
             "market_cap": 0, # Not available in this view
             "pe_ratio": None,
             "eps": None,
-            "day_high": float(str(row['dayHigh']).replace(',', '')),
-            "day_low": float(str(row['dayLow']).replace(',', '')),
-            "open": float(str(row['openPrice']).replace(',', '')),
+            "day_high": float(str(row['HighPrice']).replace(',', '')),
+            "day_low": float(str(row['LowPrice']).replace(',', '')),
+            "open": float(str(row['OpenPrice']).replace(',', '')),
             "previous_close": prev_close,
             "currency": "INR",
             "exchange": "NSE",
