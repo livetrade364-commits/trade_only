@@ -34,7 +34,23 @@ const StockDetail: React.FC = () => {
       fetchHistory(symbol, period);
 
       pollingInterval.current = setInterval(() => {
-        fetchQuote(symbol);
+        // Only poll if market is OPEN
+        // We check the quote in the store. Since quote updates, this closure might catch old state if not careful,
+        // but useStockStore is external. However, accessing state inside setInterval needs ref or store getter.
+        // A cleaner way is to rely on the fact that if we just fetched, we know the state.
+        
+        // Actually, we should check the current quote's market state before refetching
+        const currentQuote = useStockStore.getState().quote;
+        const marketState = currentQuote?.marketState;
+        
+        // Map yfinance states to isOpen boolean
+        const isOpen = marketState === 'REGULAR' || marketState === 'OPEN' || 
+                       marketState === 'PRE' || marketState === 'POST' ||
+                       marketState === 'PREPRE' || marketState === 'POSTPOST';
+
+        if (isOpen) {
+            fetchQuote(symbol);
+        }
       }, 10000);
     }
 

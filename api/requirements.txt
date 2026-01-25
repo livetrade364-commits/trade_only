@@ -1,7 +1,8 @@
 fastapi
 uvicorn
-yfinance
+yfinance>=0.2.50
 pandas
 nselib
 requests
 scipy
+httpx
