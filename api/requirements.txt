@@ -6,3 +6,4 @@ nselib
 requests
 scipy
 httpx
+fake-useragent
