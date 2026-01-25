@@ -7,3 +7,4 @@ requests
 scipy
 httpx
 fake-useragent
+beautifulsoup4
